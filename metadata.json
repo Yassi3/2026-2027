@@ -1,0 +1,8 @@
+{
+  "name": "Remix BHSS Shop - Digital Goods \u0026 Gaming Store",
+  "description": "Premium digital marketplace for game keys, software licenses, streaming subscriptions, and instant digital assets with automated delivery.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
