@@ -14,7 +14,8 @@ import {
   MessageSquare,
   KeyRound,
   Building,
-  Globe
+  Globe,
+  Shield
 } from 'lucide-react';
 
 export const Footer: React.FC = () => {
@@ -23,6 +24,9 @@ export const Footer: React.FC = () => {
     setIsVaultOpen,
     setIsAccountOpen,
     setIsDbStatusOpen,
+    setIsAdminLoginOpen,
+    setIsAdminOpen,
+    isAdmin,
     settings,
     currentCurrency,
     t
@@ -268,6 +272,21 @@ export const Footer: React.FC = () => {
               className="hover:text-emerald-400 transition-colors cursor-pointer"
             >
               {t('footer.refund')}
+            </button>
+            <span>•</span>
+            <button
+              onClick={() => {
+                if (isAdmin) {
+                  setIsAdminOpen(true);
+                } else {
+                  setIsAdminLoginOpen(true);
+                }
+              }}
+              className="hover:text-amber-400 transition-colors cursor-pointer flex items-center gap-1 opacity-70 hover:opacity-100"
+              title="Admin & Staff Portal"
+            >
+              <Shield className="w-3 h-3 text-amber-400" />
+              <span>Admin Portal</span>
             </button>
           </div>
         </div>

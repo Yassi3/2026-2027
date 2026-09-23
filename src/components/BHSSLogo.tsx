@@ -15,21 +15,21 @@ export const BHSSLogo: React.FC<LogoProps> = ({
   const { settings } = useStore();
 
   const iconDimensions = {
-    sm: 'w-8 h-8',
-    md: 'w-10 h-10',
-    lg: 'w-14 h-14'
+    sm: 'w-7 h-7 sm:w-8 sm:h-8',
+    md: 'w-8 h-8 sm:w-10 sm:h-10',
+    lg: 'w-11 h-11 sm:w-14 sm:h-14'
   }[size];
 
   const titleSizes = {
-    sm: 'text-base',
-    md: 'text-xl',
-    lg: 'text-2xl'
+    sm: 'text-sm sm:text-base',
+    md: 'text-base sm:text-xl',
+    lg: 'text-xl sm:text-2xl'
   }[size];
 
   const customLogo = settings?.customLogoUrl;
 
   return (
-    <div className={`flex items-center gap-3 cursor-pointer select-none group ${className}`}>
+    <div className={`flex items-center gap-2 sm:gap-3 cursor-pointer select-none group shrink-0 ${className}`}>
       {/* Brand Emblem */}
       <div className={`${iconDimensions} relative shrink-0 transition-transform duration-300 group-hover:scale-105`}>
         {customLogo ? (
@@ -138,7 +138,7 @@ export const BHSSLogo: React.FC<LogoProps> = ({
         </div>
 
         {showSubtitle && (
-          <span className="text-[10px] font-semibold tracking-widest text-slate-400 uppercase mt-0.5">
+          <span className="hidden lg:inline-block text-[10px] font-semibold tracking-widest text-slate-400 uppercase mt-0.5">
             Instant Digital Goods
           </span>
         )}

@@ -40,14 +40,12 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-white hover:border-slate-700 transition-all cursor-pointer shadow-sm group"
+        className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-white hover:border-slate-700 transition-all cursor-pointer shadow-sm group"
         title={t('nav.selectLanguage')}
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        <span className="text-sm select-none" role="img" aria-label={currentLanguageObj.name}>
-          {currentLanguageObj.flag}
-        </span>
+        <Globe className="w-3.5 h-3.5 text-indigo-400 group-hover:text-cyan-400 transition-colors shrink-0" />
         <span className="uppercase tracking-wider font-bold text-xs text-slate-200 group-hover:text-indigo-300 transition-colors">
           {currentLanguageObj.code}
         </span>

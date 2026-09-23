@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Product } from '../types';
 import { useStore } from '../context/StoreContext';
 import {
@@ -24,6 +24,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     t
   } = useStore();
 
+  const cardRef = useRef<HTMLDivElement>(null);
+  const glareRef = useRef<HTMLDivElement>(null);
+
   const discountPercentage = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
@@ -43,11 +46,71 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     addToCart(product, 1);
   };
 
+  // Subtle 3D tilt and scale interaction on mouse move
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (typeof window !== 'undefined' && !window.matchMedia('(hover: hover)').matches) {
+      return;
+    }
+    const card = cardRef.current;
+    if (!card) return;
+
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    // Subtle max tilt (±6.5 degrees) for sleek, non-disruptive feedback
+    const maxTilt = 6.5;
+    const rotateY = Number((((x - centerX) / centerX) * maxTilt).toFixed(2));
+    const rotateX = Number((-((y - centerY) / centerY) * maxTilt).toFixed(2));
+
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.025, 1.025, 1.025)`;
+
+    if (glareRef.current) {
+      const glareX = ((x / rect.width) * 100).toFixed(1);
+      const glareY = ((y / rect.height) * 100).toFixed(1);
+      glareRef.current.style.background = `radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255, 255, 255, 0.16), rgba(99, 102, 241, 0.08) 35%, transparent 70%)`;
+      glareRef.current.style.opacity = '1';
+    }
+  };
+
+  const handleMouseEnter = () => {
+    if (typeof window !== 'undefined' && !window.matchMedia('(hover: hover)').matches) {
+      return;
+    }
+    const card = cardRef.current;
+    if (card) {
+      card.style.transition = 'transform 0.12s ease-out, border-color 0.25s ease, box-shadow 0.25s ease';
+    }
+  };
+
+  const handleMouseLeave = () => {
+    const card = cardRef.current;
+    if (card) {
+      card.style.transition = 'transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.25s ease, box-shadow 0.25s ease';
+      card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+    }
+    if (glareRef.current) {
+      glareRef.current.style.opacity = '0';
+    }
+  };
+
   return (
     <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       onClick={() => setSelectedProductDetails(product)}
-      className="group relative flex flex-col justify-between rounded-2xl bg-slate-900/80 border border-slate-800/90 hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 overflow-hidden cursor-pointer backdrop-blur-sm"
+      className="group relative flex flex-col justify-between rounded-2xl bg-slate-900/80 border border-slate-800/90 hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/15 overflow-hidden cursor-pointer backdrop-blur-sm will-change-transform"
+      style={{ transformStyle: 'preserve-3d' }}
     >
+      {/* Dynamic Cursor Light Glare / Specular Highlight */}
+      <div
+        ref={glareRef}
+        className="pointer-events-none absolute inset-0 z-30 opacity-0 transition-opacity duration-300"
+      />
       {/* Top Image Section */}
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-950">
         <img

@@ -50,7 +50,7 @@ const StoreContent: React.FC = () => {
   };
 
   return (
-    <div dir={dir} className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white relative">
+    <div dir={dir} className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white relative w-full overflow-x-hidden">
       {/* Top Banner */}
       <MaintenanceBanner />
 
