@@ -97,10 +97,23 @@ export const CategoryNav: React.FC = () => {
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+              style={
                 isSelected
-                  ? 'bg-gradient-to-r from-indigo-600 to-cyan-500 text-white shadow-lg shadow-indigo-600/30 scale-[1.02]'
-                  : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800'
+                  ? {
+                      background: 'var(--theme-gradient, linear-gradient(135deg, #6366f1 0%, #06b6d4 100%))',
+                      boxShadow: '0 4px 14px -2px var(--theme-glow, rgba(99, 102, 241, 0.35))',
+                      borderRadius: 'calc(var(--theme-radius, 16px) * 0.75)'
+                    }
+                  : {
+                      backgroundColor: 'var(--theme-card-bg, #111827)',
+                      borderColor: 'var(--theme-border, #1f293d)',
+                      borderRadius: 'calc(var(--theme-radius, 16px) * 0.75)'
+                    }
+              }
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                isSelected
+                  ? 'text-white scale-[1.02]'
+                  : 'hover:bg-slate-800 text-slate-300 hover:text-white border'
               }`}
             >
               <span className={isSelected ? 'text-white' : 'text-cyan-400'}>
@@ -126,9 +139,20 @@ export const CategoryNav: React.FC = () => {
               <button
                 key={plat.id}
                 onClick={() => setSelectedPlatform(plat.id)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                style={
                   isSelected
-                    ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold'
+                    ? {
+                        borderColor: 'var(--theme-primary, #6366f1)',
+                        color: 'var(--theme-text, #ffffff)',
+                        borderRadius: 'calc(var(--theme-radius, 16px) * 0.5)'
+                      }
+                    : {
+                        borderRadius: 'calc(var(--theme-radius, 16px) * 0.5)'
+                      }
+                }
+                className={`px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer ${
+                  isSelected
+                    ? 'bg-slate-800 font-bold border'
                     : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
                 }`}
               >

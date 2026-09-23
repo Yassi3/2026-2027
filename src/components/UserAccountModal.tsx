@@ -14,15 +14,19 @@ import {
   ExternalLink,
   ChevronRight,
   Clock,
-  Globe
+  Globe,
+  Search,
+  CheckCircle2
 } from 'lucide-react';
 
 export const UserAccountModal: React.FC = () => {
   const {
     isAccountOpen,
     setIsAccountOpen,
-    orders,
+    myOrders,
     vaultItems,
+    customerEmail,
+    lookupAndRestoreCustomerOrders,
     setIsVaultOpen,
     formatPrice,
     settings,
@@ -35,26 +39,63 @@ export const UserAccountModal: React.FC = () => {
   } = useStore();
 
   const [activeTab, setActiveTab] = useState<'orders' | 'support' | 'settings'>('orders');
+  const [lookupQuery, setLookupQuery] = useState('');
 
   if (!isAccountOpen) return null;
 
+  const handleLookup = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (lookupQuery.trim()) {
+      lookupAndRestoreCustomerOrders(lookupQuery);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden my-6 flex flex-col max-h-[90vh]">
+      <div 
+        style={{
+          backgroundColor: 'var(--theme-card-bg, #111827)',
+          borderColor: 'var(--theme-border, #1f293d)',
+          borderRadius: 'var(--theme-radius, 24px)',
+          boxShadow: '0 25px 60px -15px var(--theme-glow, rgba(0, 0, 0, 0.7))'
+        }}
+        className="relative w-full max-w-2xl border shadow-2xl overflow-hidden my-6 flex flex-col max-h-[90vh]"
+      >
         {/* Header */}
-        <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-950/50 shrink-0">
+        <div 
+          style={{
+            backgroundColor: 'var(--theme-bg-subtle, rgba(15, 23, 42, 0.5))',
+            borderColor: 'var(--theme-border, #1f293d)'
+          }}
+          className="p-6 border-b flex items-center justify-between shrink-0"
+        >
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-cyan-400 p-[2px]">
-              <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-cyan-400 font-black">
+            <div 
+              style={{
+                background: 'var(--theme-gradient, linear-gradient(135deg, #6366f1 0%, #06b6d4 100%))'
+              }}
+              className="w-12 h-12 rounded-2xl p-[2px]"
+            >
+              <div 
+                style={{
+                  backgroundColor: 'var(--theme-card-bg, #111827)',
+                  color: 'var(--theme-accent, #06b6d4)'
+                }}
+                className="w-full h-full rounded-[14px] flex items-center justify-center font-black"
+              >
                 <User className="w-6 h-6" />
               </div>
             </div>
             <div>
               <h2 className="text-lg font-black text-white">Customer Account & Orders</h2>
               <div className="flex items-center gap-2 text-xs text-slate-400">
-                <span>Verified Buyer</span>
+                <span className="text-slate-300 font-medium">
+                  {customerEmail ? customerEmail : 'Guest Session'}
+                </span>
                 <span>•</span>
-                <span className="text-emerald-400 font-semibold">{vaultItems.length} Keys Owned</span>
+                <span className={vaultItems.length > 0 ? 'text-emerald-400 font-semibold' : 'text-slate-400'}>
+                  {vaultItems.length} Keys Owned
+                </span>
               </div>
             </div>
           </div>
@@ -68,22 +109,44 @@ export const UserAccountModal: React.FC = () => {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="px-6 border-b border-slate-800 bg-slate-900/60 flex gap-4 shrink-0">
+        <div 
+          style={{
+            borderColor: 'var(--theme-border, #1f293d)',
+            backgroundColor: 'var(--theme-bg-subtle, rgba(15, 23, 42, 0.4))'
+          }}
+          className="px-6 border-b flex gap-4 shrink-0"
+        >
           <button
             onClick={() => setActiveTab('orders')}
+            style={
+              activeTab === 'orders'
+                ? {
+                    borderColor: 'var(--theme-primary, #6366f1)',
+                    color: 'var(--theme-primary, #6366f1)'
+                  }
+                : undefined
+            }
             className={`py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
               activeTab === 'orders'
-                ? 'border-indigo-500 text-indigo-400'
+                ? ''
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            Order History ({orders.length})
+            Order History ({myOrders.length})
           </button>
           <button
             onClick={() => setActiveTab('support')}
+            style={
+              activeTab === 'support'
+                ? {
+                    borderColor: 'var(--theme-primary, #6366f1)',
+                    color: 'var(--theme-primary, #6366f1)'
+                  }
+                : undefined
+            }
             className={`py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
               activeTab === 'support'
-                ? 'border-indigo-500 text-indigo-400'
+                ? ''
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -91,9 +154,17 @@ export const UserAccountModal: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('settings')}
+            style={
+              activeTab === 'settings'
+                ? {
+                    borderColor: 'var(--theme-primary, #6366f1)',
+                    color: 'var(--theme-primary, #6366f1)'
+                  }
+                : undefined
+            }
             className={`py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
               activeTab === 'settings'
-                ? 'border-indigo-500 text-indigo-400'
+                ? ''
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -105,56 +176,140 @@ export const UserAccountModal: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-6">
           {activeTab === 'orders' && (
             <div className="space-y-4">
-              {orders.length === 0 ? (
-                <div className="text-center py-12 space-y-3">
-                  <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-800 flex items-center justify-center text-slate-500">
+              {myOrders.length === 0 ? (
+                <div className="text-center py-10 space-y-4">
+                  <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-800/60 border border-slate-700/60 flex items-center justify-center text-slate-500">
                     <Package className="w-7 h-7" />
                   </div>
-                  <h3 className="text-sm font-bold text-slate-200">No orders yet</h3>
-                  <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                    Purchased keys will appear here along with instant download links and invoices.
-                  </p>
-                </div>
-              ) : (
-                orders.map((ord) => (
-                  <div
-                    key={ord.id}
-                    className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3"
-                  >
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-white font-mono">{ord.orderNumber}</span>
-                        <span className="text-slate-500">•</span>
-                        <span className="text-slate-400">{ord.date}</span>
-                      </div>
-                      <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold uppercase text-[10px]">
-                        COMPLETED
-                      </span>
-                    </div>
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-bold text-slate-200">No orders on this device yet</h3>
+                    <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                      When you purchase licenses or game keys, your private orders and instant download keys will appear here.
+                    </p>
+                  </div>
 
-                    <div className="divide-y divide-slate-800/60">
-                      {ord.items.map((item, i) => (
-                        <div key={i} className="py-2 flex items-center justify-between text-xs">
-                          <span className="text-slate-300 font-medium">
-                            {item.quantity}x {item.product.title}
-                          </span>
-                          <span className="font-mono text-slate-200">
-                            {formatPrice(item.product.price * item.quantity)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-xs">
-                      <div className="text-slate-400">
-                        Paid via <strong className="text-slate-200">{ord.paymentMethod}</strong>
+                  {/* Order Recovery Box */}
+                  <div className="pt-2 max-w-md mx-auto">
+                    <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2.5 text-left">
+                      <div className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                        <Search className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Already placed an order? Restore your keys:</span>
                       </div>
-                      <div className="font-black text-white text-sm">
-                        Total: {formatPrice(ord.total)}
-                      </div>
+                      <form onSubmit={handleLookup} className="flex gap-2">
+                        <input
+                          type="text"
+                          value={lookupQuery}
+                          onChange={(e) => setLookupQuery(e.target.value)}
+                          placeholder="Enter your Email or Order # (e.g. BHS-123456)"
+                          className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+                        />
+                        <button
+                          type="submit"
+                          className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition cursor-pointer shrink-0"
+                        >
+                          Restore
+                        </button>
+                      </form>
                     </div>
                   </div>
-                ))
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {myOrders.map((ord) => (
+                    <div
+                      key={ord.id}
+                      className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3"
+                    >
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-white font-mono">{ord.orderNumber}</span>
+                          <span className="text-slate-500">•</span>
+                          <span className="text-slate-400">{ord.date}</span>
+                        </div>
+                        {ord.status === 'completed' && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold uppercase text-[10px]">
+                            <CheckCircle2 className="w-3 h-3" />
+                            DELIVERED
+                          </span>
+                        )}
+                        {ord.status === 'pending' && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold uppercase text-[10px]">
+                            <Clock className="w-3 h-3 animate-pulse" />
+                            PENDING VERIFICATION
+                          </span>
+                        )}
+                        {ord.status === 'refunded' && (
+                          <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold uppercase text-[10px]">
+                            REFUNDED
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="divide-y divide-slate-800/60">
+                        {ord.items.map((item, i) => (
+                          <div key={i} className="py-2 flex items-center justify-between text-xs">
+                            <span className="text-slate-300 font-medium">
+                              {item.quantity}x {item.product.title}
+                            </span>
+                            <span className="font-mono text-slate-200">
+                              {formatPrice(item.product.price * item.quantity)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-xs">
+                        <div className="text-slate-400">
+                          Paid via <strong className="text-slate-200">{ord.paymentMethod}</strong>
+                        </div>
+                        <div className="font-black text-white text-sm">
+                          Total: {formatPrice(ord.total)}
+                        </div>
+                      </div>
+
+                      {ord.status === 'completed' && (
+                        <button
+                          onClick={() => {
+                            setIsAccountOpen(false);
+                            setIsVaultOpen(true);
+                          }}
+                          className="w-full py-2 px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                        >
+                          <KeyRound className="w-3.5 h-3.5" />
+                          <span>View Keys in Digital Vault</span>
+                        </button>
+                      )}
+
+                      {ord.status === 'pending' && (
+                        <div className="p-2.5 rounded-xl bg-amber-950/30 border border-amber-500/20 text-[11px] text-amber-300/90 flex items-start gap-2">
+                          <Clock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                          <span>
+                            Virement en cours de vérification. Vos clés seront débloquées et consultables dans votre coffre dès confirmation par l'administrateur.
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Option to look up another order */}
+                  <div className="pt-2">
+                    <form onSubmit={handleLookup} className="flex gap-2 p-3 rounded-xl bg-slate-950/50 border border-slate-800/80">
+                      <input
+                        type="text"
+                        value={lookupQuery}
+                        onChange={(e) => setLookupQuery(e.target.value)}
+                        placeholder="Link another order (Email or BHS-#)..."
+                        className="flex-1 bg-transparent text-xs text-white placeholder:text-slate-500 focus:outline-none"
+                      />
+                      <button
+                        type="submit"
+                        className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold px-2 py-1 transition cursor-pointer"
+                      >
+                        Search
+                      </button>
+                    </form>
+                  </div>
+                </div>
               )}
             </div>
           )}

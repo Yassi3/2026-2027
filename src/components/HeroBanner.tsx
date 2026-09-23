@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 export const HeroBanner: React.FC = () => {
-  const { products, setSelectedProductDetails, addToCart, formatPrice, t } = useStore();
+  const { products, setSelectedProductDetails, addToCart, formatPrice, settings, t } = useStore();
 
   // Find a hot deal to feature
   const featuredProduct = products.find((p) => p.id === 'prod-win11-pro') || products[0];
@@ -20,8 +20,18 @@ export const HeroBanner: React.FC = () => {
   return (
     <section className="relative overflow-hidden pt-6 pb-10 md:py-12 border-b border-slate-800/80">
       {/* Background cyber grid & glow effects */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none -z-10" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+      {(settings.customTheme?.enableCyberBlobs ?? true) && (
+        <>
+          <div
+            style={{ backgroundColor: 'var(--theme-primary, #6366f1)' }}
+            className="absolute top-0 left-1/4 w-96 h-96 opacity-20 rounded-full blur-3xl pointer-events-none -z-10 transition-colors duration-500"
+          />
+          <div
+            style={{ backgroundColor: 'var(--theme-accent, #06b6d4)' }}
+            className="absolute bottom-0 right-1/4 w-96 h-96 opacity-15 rounded-full blur-3xl pointer-events-none -z-10 transition-colors duration-500"
+          />
+        </>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
@@ -36,7 +46,12 @@ export const HeroBanner: React.FC = () => {
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight">
               {t('hero.titlePrefix')}{' '}
-              <span className="bg-gradient-to-r from-indigo-400 via-cyan-400 to-teal-300 bg-clip-text text-transparent">
+              <span
+                style={{
+                  backgroundImage: 'var(--theme-gradient, linear-gradient(135deg, #6366f1 0%, #06b6d4 100%))'
+                }}
+                className="bg-clip-text text-transparent"
+              >
                 {t('hero.titleHighlight')}
               </span>
             </h1>
@@ -67,7 +82,7 @@ export const HeroBanner: React.FC = () => {
                 <Award className="w-4 h-4 text-amber-400 shrink-0" />
                 <div>
                   <div className="text-xs font-bold text-slate-200">{t('hero.feature3')}</div>
-                  <div className="text-[10px] text-slate-400">CIH Bank / USDT</div>
+                  <div className="text-[10px] text-slate-400">Virement Maroc / USDT</div>
                 </div>
               </div>
             </div>
@@ -79,7 +94,11 @@ export const HeroBanner: React.FC = () => {
                   const element = document.getElementById('catalog-section');
                   element?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                style={{
+                  background: 'var(--theme-gradient, linear-gradient(135deg, #6366f1 0%, #06b6d4 100%))',
+                  boxShadow: '0 10px 25px -4px var(--theme-glow, rgba(99, 102, 241, 0.4))'
+                }}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl text-white font-bold text-sm hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
               >
                 <span>{t('hero.exploreBtn')}</span>
                 <ArrowRight className="w-4 h-4 rtl:rotate-180" />
@@ -97,9 +116,21 @@ export const HeroBanner: React.FC = () => {
             <div className="lg:col-span-5">
               <div className="relative group">
                 {/* Glow border effect */}
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-600 to-cyan-400 rounded-3xl blur-md opacity-40 group-hover:opacity-75 transition duration-500" />
+                <div
+                  style={{
+                    background: 'var(--theme-gradient, linear-gradient(135deg, #6366f1 0%, #06b6d4 100%))'
+                  }}
+                  className="absolute -inset-0.5 rounded-3xl blur-md opacity-40 group-hover:opacity-75 transition duration-500"
+                />
 
-                <div className="relative rounded-2xl bg-slate-900/95 border border-slate-800 p-5 sm:p-6 shadow-2xl backdrop-blur-xl">
+                <div
+                  style={{
+                    backgroundColor: 'var(--theme-card-bg, rgba(15, 23, 42, 0.95))',
+                    borderColor: 'var(--theme-border, #1f293d)',
+                    borderRadius: 'var(--theme-radius, 16px)'
+                  }}
+                  className="relative border p-5 sm:p-6 shadow-2xl backdrop-blur-xl"
+                >
                   {/* Deal Header */}
                   <div className="flex items-center justify-between pb-4 border-b border-slate-800/80">
                     <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-400">

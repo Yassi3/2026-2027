@@ -50,7 +50,11 @@ const StoreContent: React.FC = () => {
   };
 
   return (
-    <div dir={dir} className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white relative w-full overflow-x-hidden">
+    <div
+      dir={dir}
+      style={{ backgroundColor: 'var(--theme-bg, #090d16)', color: 'var(--theme-text, #f1f5f9)' }}
+      className="min-h-screen flex flex-col font-sans relative w-full overflow-x-hidden transition-colors duration-300"
+    >
       {/* Top Banner */}
       <MaintenanceBanner />
 

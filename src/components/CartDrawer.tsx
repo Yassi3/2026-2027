@@ -55,13 +55,29 @@ export const CartDrawer: React.FC = () => {
       />
 
       <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col">
+        <div 
+          style={{
+            backgroundColor: 'var(--theme-card-bg, #111827)',
+            borderColor: 'var(--theme-border, #1f293d)'
+          }}
+          className="w-screen max-w-md border-l shadow-2xl flex flex-col"
+        >
           {/* Drawer Header */}
-          <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+          <div 
+            style={{ borderColor: 'var(--theme-border, #1f293d)' }}
+            className="p-5 border-b flex items-center justify-between"
+          >
             <div className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-indigo-400" />
+              <ShoppingBag className="w-5 h-5" style={{ color: 'var(--theme-primary, #6366f1)' }} />
               <h2 className="text-base font-extrabold text-white">Your Shopping Cart</h2>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300">
+              <span 
+                style={{
+                  backgroundColor: 'rgba(var(--theme-primary-rgb, 99, 102, 241), 0.15)',
+                  color: 'var(--theme-primary, #6366f1)',
+                  borderColor: 'var(--theme-border, #1f293d)'
+                }}
+                className="text-xs font-semibold px-2 py-0.5 rounded-full border"
+              >
                 {cart.reduce((sum, item) => sum + item.quantity, 0)} items
               </span>
             </div>
@@ -247,7 +263,11 @@ export const CartDrawer: React.FC = () => {
               {/* Checkout CTA */}
               <button
                 onClick={handleProceedToCheckout}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-extrabold text-sm shadow-xl shadow-indigo-600/30 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
+                style={{
+                  background: 'var(--theme-gradient, linear-gradient(135deg, #6366f1 0%, #06b6d4 100%))',
+                  boxShadow: '0 10px 25px -4px var(--theme-glow, rgba(99, 102, 241, 0.35))'
+                }}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-white font-extrabold text-sm hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
               >
                 <span>Proceed to Checkout</span>
                 <ArrowRight className="w-4 h-4" />

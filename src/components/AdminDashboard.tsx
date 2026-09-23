@@ -8,6 +8,7 @@ import { PaymentSettingsTab } from './admin/PaymentSettingsTab';
 import { SupabasePlanTab } from './admin/SupabasePlanTab';
 import { AdminSecurityTab } from './admin/AdminSecurityTab';
 import { BankTransfersTab } from './admin/BankTransfersTab';
+import { ThemesTab } from './admin/ThemesTab';
 import {
   X,
   Plus,
@@ -30,7 +31,8 @@ import {
   Upload,
   Key,
   Landmark,
-  Clock
+  Clock,
+  Palette
 } from 'lucide-react';
 import { BHSSLogo } from './BHSSLogo';
 
@@ -45,13 +47,13 @@ export const AdminDashboard: React.FC = () => {
     deleteProduct,
     orders,
     approveOrderAndDispatchKeys,
-    vaultItems,
+    allVaultItems,
     formatPrice,
     settings,
     updateSettings
   } = useStore();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'transfers' | 'gateways' | 'security' | 'database' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'transfers' | 'gateways' | 'themes' | 'security' | 'database' | 'settings'>('overview');
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
@@ -145,6 +147,7 @@ export const AdminDashboard: React.FC = () => {
               highlight: pendingBankCount > 0
             },
             { id: 'gateways', label: 'Payment Gateways', icon: CreditCard },
+            { id: 'themes', label: 'Thèmes & Design', icon: Palette },
             { id: 'security', label: 'Admins & Passwords', icon: Key },
             { id: 'database', label: 'Cloud DB', icon: Database },
             { id: 'settings', label: 'Store Settings', icon: Settings }
@@ -218,7 +221,7 @@ export const AdminDashboard: React.FC = () => {
                     <KeyRound className="w-4 h-4 text-amber-400" />
                   </div>
                   <div className="text-2xl font-black text-white font-mono">
-                    {vaultItems.length}
+                    {allVaultItems.length}
                   </div>
                   <div className="text-[10px] text-amber-400">Stored in customer vaults</div>
                 </div>
@@ -453,8 +456,11 @@ export const AdminDashboard: React.FC = () => {
           {/* TAB: BANK TRANSFERS & VERIFICATIONS */}
           {activeTab === 'transfers' && <BankTransfersTab />}
 
-          {/* TAB 4: PAYMENT GATEWAYS */}
+          {/* TAB: PAYMENT GATEWAYS */}
           {activeTab === 'gateways' && <PaymentSettingsTab />}
+
+          {/* TAB: THEMES & DESIGN */}
+          {activeTab === 'themes' && <ThemesTab />}
 
           {/* TAB: SECURITY & ADMINS */}
           {activeTab === 'security' && <AdminSecurityTab />}
@@ -465,6 +471,30 @@ export const AdminDashboard: React.FC = () => {
           {/* TAB 6: SETTINGS */}
           {activeTab === 'settings' && (
             <div className="space-y-5 max-w-xl text-xs">
+              {/* Theme Quick Shortcut Banner */}
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-950/70 via-purple-950/60 to-slate-900 border border-indigo-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 shrink-0">
+                    <Palette className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white text-xs">
+                      Thème & Palette du Magasin
+                    </h4>
+                    <p className="text-[11px] text-slate-300 mt-0.5">
+                      Personnalisez les couleurs, le fond et l'ambiance néon de la boutique.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('themes')}
+                  className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition cursor-pointer self-start sm:self-auto shrink-0 shadow-md shadow-indigo-600/30"
+                >
+                  Changer le Thème →
+                </button>
+              </div>
+
               <div className="space-y-2">
                 <label className="font-bold text-slate-300">Store Name</label>
                 <input

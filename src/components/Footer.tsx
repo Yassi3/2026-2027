@@ -207,7 +207,7 @@ export const Footer: React.FC = () => {
               <div className="flex flex-wrap gap-1.5 text-[10px] font-mono">
                 <span className="px-2 py-1 rounded bg-slate-900 border border-emerald-500/40 text-emerald-300 font-bold flex items-center gap-1">
                   <Building className="w-3 h-3 text-emerald-400" />
-                  CIH Bank (Morocco)
+                  Virement Bancaire (Maroc)
                 </span>
                 <span className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300">
                   USDT (TRC20)

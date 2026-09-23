@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import {
   Product,
   Category,
@@ -11,7 +11,8 @@ import {
   AuthUser,
   AdminAccount,
   Language,
-  LanguageCode
+  LanguageCode,
+  ColorMode
 } from '../types';
 import {
   INITIAL_PRODUCTS,
@@ -25,6 +26,7 @@ import {
   TRANSLATIONS,
   TranslationKey
 } from '../data/translations';
+import { applyThemeToDocument } from '../data/themes';
 
 interface ToastData {
   id: string;
@@ -86,7 +88,15 @@ interface StoreContextType {
 
   // Vault & Orders
   vaultItems: DigitalVaultItem[];
+  myVaultItems: DigitalVaultItem[];
+  allVaultItems: DigitalVaultItem[];
   orders: Order[];
+  myOrders: Order[];
+  allOrders: Order[];
+  customerEmail: string;
+  setCustomerEmail: (email: string) => void;
+  customerOrderIds: string[];
+  lookupAndRestoreCustomerOrders: (query: string) => { found: number; message: string };
   placeOrder: (details: {
     email: string;
     name?: string;
@@ -94,6 +104,7 @@ interface StoreContextType {
     paymentMethod: string;
     paymentTxId?: string;
     bankTransferRef?: string;
+    bankName?: string;
     requiresVerification?: boolean;
   }) => Promise<Order>;
   approveOrderAndDispatchKeys: (orderId: string) => { success: boolean; message: string };
@@ -134,6 +145,9 @@ interface StoreContextType {
   deleteAdminAccount: (id: string) => { success: boolean; message: string };
   settings: StoreSettings;
   updateSettings: (newSettings: Partial<StoreSettings>) => void;
+  colorMode: ColorMode;
+  setColorMode: (mode: ColorMode) => void;
+  toggleColorMode: () => void;
   paymentGateways: PaymentGateway[];
   updatePaymentGateway: (id: string, updates: Partial<PaymentGateway>) => void;
   addProduct: (product: Omit<Product, 'id'>) => Product;
@@ -200,110 +214,135 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   });
 
-  const [orders, setOrders] = useState<Order[]>(() => {
-    const defaultOrdersList: Order[] = [
-      {
-        id: 'ord-bank-pending-1',
-        orderNumber: 'BHS-934812',
-        date: new Date().toISOString().split('T')[0],
-        customerEmail: 'yassine.gamer21@gmail.com',
-        customerName: 'Yassine El Amrani',
-        customerDiscord: 'yassine_pro#1290',
-        items: [
-          {
-            product: INITIAL_PRODUCTS[0],
-            quantity: 1
-          }
-        ],
-        total: 14.99,
-        currency: 'USD',
-        paymentMethod: 'CIH Bank / Virement Maroc (MAD)',
-        status: 'pending',
-        deliveredKeys: [
-          {
-            productId: INITIAL_PRODUCTS[0].id,
-            productTitle: INITIAL_PRODUCTS[0].title,
-            keyOrData: 'VK7JG-NPHTM-C97JM-9MPGT-3V66T',
-            deliveryType: 'instant_key',
-            instructions: 'Accédez aux Paramètres Windows > Activation > Modifier la clé de produit.'
-          }
-        ],
-        paymentTxId: 'CIH-REF-883921',
-        bankTransferRef: 'BHSS-934812 (Virement CIH Mobile Yassine)',
-        requiresVerification: true,
-        vaultUnlocked: false
-      },
-      {
-        id: 'ord-completed-crypto-2',
-        orderNumber: 'BHS-820194',
-        date: '2026-09-21',
-        customerEmail: 'bouhsousse.16@gmail.com',
-        customerName: 'Bouhsousse',
-        customerDiscord: 'bouhsousse#0001',
-        items: [
-          {
-            product: INITIAL_PRODUCTS[1],
-            quantity: 1
-          }
-        ],
-        total: 28.50,
-        currency: 'USD',
-        paymentMethod: 'USDT (Tether TRC20 / BEP20)',
-        status: 'completed',
-        deliveredKeys: [
-          {
-            productId: INITIAL_PRODUCTS[1].id,
-            productTitle: INITIAL_PRODUCTS[1].title,
-            keyOrData: 'XBOX-GPU3M-7892K-LL901-BB332',
-            deliveryType: 'instant_key',
-            instructions: 'Redeem at redeem.microsoft.com'
-          }
-        ],
-        paymentTxId: 'TX-TRC20-0x9812401',
-        requiresVerification: false,
-        vaultUnlocked: true
-      }
-    ];
+  const sanitizeOrders = (ordersList: any[]): Order[] => {
+    if (!Array.isArray(ordersList)) return [];
+    return ordersList.filter((o) => {
+      if (!o || typeof o !== 'object') return false;
+      if (o.id === 'ord-bank-pending-1' || o.id === 'ord-completed-crypto-2') return false;
+      if (o.orderNumber === 'BHS-934812' || o.orderNumber === 'BHS-820194') return false;
+      if (o.customerEmail === 'yassine.gamer21@gmail.com') return false;
+      return true;
+    });
+  };
 
+  const sanitizeVault = (vaultList: any[]): DigitalVaultItem[] => {
+    if (!Array.isArray(vaultList)) return [];
+    return vaultList.filter((v) => {
+      if (!v || typeof v !== 'object') return false;
+      if (v.id === 'vlt-sample-1' || v.orderId === 'bhs-demo-init' || v.orderNumber === 'BHS-882910') return false;
+      if (v.keyOrCredential === 'VK7JG-NPHTM-C97JM-9MPGT-3V66T') return false;
+      return true;
+    });
+  };
+
+  const [orders, setOrders] = useState<Order[]>(() => {
     try {
       const saved = localStorage.getItem('bhsshop_orders');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        return sanitizeOrders(parsed);
       }
-      return defaultOrdersList;
+      return [];
     } catch {
-      return defaultOrdersList;
+      return [];
     }
   });
 
   const [vaultItems, setVaultItems] = useState<DigitalVaultItem[]>(() => {
     try {
       const saved = localStorage.getItem('bhsshop_vault');
-      if (saved) return JSON.parse(saved);
-      // Generate a welcoming initial starter vault item for demo
-      return [
-        {
-          id: 'vlt-sample-1',
-          orderId: 'bhs-demo-init',
-          orderNumber: 'BHS-882910',
-          datePurchased: '2026-09-20',
-          productId: 'prod-win11-pro',
-          productTitle: 'Windows 11 Professional Retail License',
-          productImage: 'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?auto=format&fit=crop&w=900&q=80',
-          category: 'software',
-          platform: 'Windows',
-          deliveryType: 'instant_key',
-          keyOrCredential: 'VK7JG-NPHTM-C97JM-9MPGT-3V66T',
-          instructions: 'Windows Settings > Activation > Change Product Key > Enter 25-digit code.',
-          warranty: 'Lifetime Retail Guarantee',
-          status: 'active'
-        }
-      ];
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return sanitizeVault(parsed);
+      }
+      return [];
     } catch {
       return [];
     }
   });
+
+  // Track orders belonging specifically to THIS customer / device
+  const [customerOrderIds, setCustomerOrderIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('bhsshop_my_order_ids');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed)
+          ? parsed.filter(
+              (id) =>
+                id !== 'BHS-934812' &&
+                id !== 'BHS-820194' &&
+                id !== 'ord-bank-pending-1' &&
+                id !== 'ord-completed-crypto-2'
+            )
+          : [];
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [customerEmail, setCustomerEmail] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('bhsshop_customer_email');
+      if (saved && saved !== 'yassine.gamer21@gmail.com') return saved;
+      return '';
+    } catch {
+      return '';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('bhsshop_my_order_ids', JSON.stringify(customerOrderIds));
+    } catch (e) {
+      console.warn('Failed to save customer order IDs:', e);
+    }
+  }, [customerOrderIds]);
+
+  useEffect(() => {
+    try {
+      if (customerEmail) {
+        localStorage.setItem('bhsshop_customer_email', customerEmail);
+      } else {
+        localStorage.removeItem('bhsshop_customer_email');
+      }
+    } catch (e) {
+      console.warn('Failed to save customer email:', e);
+    }
+  }, [customerEmail]);
+
+  // Customer-scoped orders: ONLY orders made by this user/device or looked up with their email
+  const myOrders = useMemo(() => {
+    if (customerOrderIds.length === 0 && !customerEmail.trim()) {
+      return [];
+    }
+    const emailLower = customerEmail.trim().toLowerCase();
+    return orders.filter(
+      (o) =>
+        customerOrderIds.includes(o.id) ||
+        customerOrderIds.includes(o.orderNumber) ||
+        (emailLower && o.customerEmail?.trim().toLowerCase() === emailLower)
+    );
+  }, [orders, customerOrderIds, customerEmail]);
+
+  // Customer-scoped vault items: ONLY keys belonging to this customer's orders
+  const myVaultItems = useMemo(() => {
+    if (myOrders.length === 0 && customerOrderIds.length === 0 && !customerEmail.trim()) {
+      return [];
+    }
+    const myOrderNumbers = new Set([
+      ...myOrders.map((o) => o.orderNumber),
+      ...myOrders.map((o) => o.id),
+      ...customerOrderIds
+    ]);
+    return vaultItems.filter(
+      (item) =>
+        myOrderNumbers.has(item.orderNumber) ||
+        myOrderNumbers.has(item.orderId)
+    );
+  }, [vaultItems, myOrders, customerOrderIds, customerEmail]);
 
   const [settings, setSettings] = useState<StoreSettings>(() => {
     try {
@@ -323,10 +362,87 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   });
 
+  const [colorMode, setColorModeState] = useState<ColorMode>(() => {
+    try {
+      const saved = localStorage.getItem('bhsshop_color_mode');
+      if (saved === 'light' || saved === 'dark') return saved;
+      return settings.colorMode || 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+
+  const setColorMode = (mode: ColorMode) => {
+    setColorModeState(mode);
+    try {
+      localStorage.setItem('bhsshop_color_mode', mode);
+    } catch (e) {
+      console.warn('Failed to save color mode:', e);
+    }
+    applyThemeToDocument(
+      settings.activeTheme,
+      settings.customPrimaryColor,
+      settings.customAccentColor,
+      settings.customTheme,
+      mode
+    );
+    setSettings((prev) => ({ ...prev, colorMode: mode }));
+  };
+
+  const toggleColorMode = () => {
+    const nextMode: ColorMode = colorMode === 'dark' ? 'light' : 'dark';
+    setColorMode(nextMode);
+  };
+
   const [paymentGateways, setPaymentGateways] = useState<PaymentGateway[]>(() => {
     try {
       const saved = localStorage.getItem('bhsshop_gateways');
-      return saved ? JSON.parse(saved) : INITIAL_PAYMENT_GATEWAYS;
+      if (saved) {
+        const parsed: PaymentGateway[] = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const defaultMb = INITIAL_PAYMENT_GATEWAYS.find((g) => g.id === 'moroccan_bank');
+          return parsed.map((gw) => {
+            if (gw.type === 'moroccan_bank' || gw.id === 'moroccan_bank') {
+              const hasBankAccounts = Array.isArray(gw.bankAccounts) && gw.bankAccounts.length > 0;
+              const isOldFixedName = gw.name === 'CIH Bank / Virement Maroc (MAD)';
+              return {
+                ...gw,
+                name: isOldFixedName ? 'Virement Bancaire Maroc (MAD)' : gw.name,
+                bankAccounts: hasBankAccounts
+                  ? gw.bankAccounts
+                  : defaultMb?.bankAccounts || [
+                      {
+                        id: 'bank-cih-1',
+                        bankName: gw.bankName || 'CIH Bank',
+                        accountHolder: gw.accountHolder || 'BHSS SHOP DIGITAL',
+                        ribNumber: gw.ribNumber || '230 780 00012345678901 23',
+                        badge: 'Instantané CIH',
+                        isDefault: true
+                      },
+                      {
+                        id: 'bank-attijari-2',
+                        bankName: 'Attijariwafa Bank',
+                        accountHolder: gw.accountHolder || 'BHSS SHOP DIGITAL',
+                        ribNumber: '007 780 00045612398711 55',
+                        badge: 'Attijari Mobile',
+                        isDefault: false
+                      },
+                      {
+                        id: 'bank-bcp-3',
+                        bankName: 'Banque Populaire (BCP)',
+                        accountHolder: gw.accountHolder || 'BHSS SHOP DIGITAL',
+                        ribNumber: '190 780 00088992211443 89',
+                        badge: 'Chaabi Net',
+                        isDefault: false
+                      }
+                    ]
+              };
+            }
+            return gw;
+          });
+        }
+      }
+      return INITIAL_PAYMENT_GATEWAYS;
     } catch {
       return INITIAL_PAYMENT_GATEWAYS;
     }
@@ -507,7 +623,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch (e) {
       console.warn('Failed to save settings:', e);
     }
-  }, [settings]);
+    applyThemeToDocument(
+      settings.activeTheme,
+      settings.customPrimaryColor,
+      settings.customAccentColor,
+      settings.customTheme,
+      colorMode
+    );
+  }, [settings, colorMode]);
 
   useEffect(() => {
     try {
@@ -732,6 +855,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     paymentMethod: string;
     paymentTxId?: string;
     bankTransferRef?: string;
+    bankName?: string;
     requiresVerification?: boolean;
   }): Promise<Order> => {
     const orderNumber = `BHS-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -794,6 +918,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       deliveredKeys: deliveredItemsSummary,
       paymentTxId: details.paymentTxId || `TX-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
       bankTransferRef: details.bankTransferRef,
+      bankName: details.bankName,
       requiresVerification: isVerificationNeeded,
       vaultUnlocked: !isVerificationNeeded,
       discountApplied: activePromo
@@ -805,8 +930,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         : undefined
     };
 
-    // Save order
+    // Save order to store
     setOrders((prev) => [newOrder, ...prev]);
+
+    // Save to customer's personal device orders
+    setCustomerOrderIds((prev) => Array.from(new Set([newOrder.orderNumber, newOrder.id, ...prev])));
+    if (details.email) {
+      setCustomerEmail(details.email);
+    }
 
     // Save to user's digital vault ONLY if payment is already confirmed and doesn't require bank transfer check!
     if (!isVerificationNeeded) {
@@ -934,6 +1065,43 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     showToast(`Commande ${targetOrder.orderNumber} annulée/rejetée. Stock rétabli.`, 'info');
     return { success: true, message: 'Order rejected and stock restored' };
+  };
+
+  // Customer order lookup & recovery
+  const lookupAndRestoreCustomerOrders = (query: string): { found: number; message: string } => {
+    const clean = query.trim().toLowerCase();
+    if (!clean) {
+      showToast('Please enter an email or order number.', 'error');
+      return { found: 0, message: 'Empty query' };
+    }
+
+    const matched = orders.filter(
+      (o) =>
+        (o.customerEmail && o.customerEmail.toLowerCase() === clean) ||
+        (o.orderNumber && o.orderNumber.toLowerCase() === clean) ||
+        (o.id && o.id.toLowerCase() === clean)
+    );
+
+    if (matched.length > 0) {
+      const orderNums = matched.map((o) => o.orderNumber);
+      const orderIds = matched.map((o) => o.id);
+      const primaryEmail = matched[0].customerEmail;
+
+      setCustomerOrderIds((prev) => Array.from(new Set([...orderNums, ...orderIds, ...prev])));
+      if (primaryEmail) setCustomerEmail(primaryEmail);
+
+      showToast(
+        `${matched.length} order(s) found! Keys loaded into your vault.`,
+        'success'
+      );
+      return { found: matched.length, message: `Found ${matched.length} orders.` };
+    } else {
+      showToast(
+        `No orders found matching "${query}". Please check your email or order number.`,
+        'error'
+      );
+      return { found: 0, message: 'No orders found' };
+    }
   };
 
   // Admin authentication and authorization actions
@@ -1182,8 +1350,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         t,
         dir,
 
-        vaultItems,
+        vaultItems: myVaultItems,
+        myVaultItems,
+        allVaultItems: vaultItems,
         orders,
+        myOrders,
+        allOrders: orders,
+        customerEmail,
+        setCustomerEmail,
+        customerOrderIds,
+        lookupAndRestoreCustomerOrders,
         placeOrder,
         approveOrderAndDispatchKeys,
         rejectOrder,
@@ -1223,6 +1399,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         deleteAdminAccount,
         settings,
         updateSettings,
+        colorMode,
+        setColorMode,
+        toggleColorMode,
         paymentGateways,
         updatePaymentGateway,
         addProduct,

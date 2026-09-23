@@ -17,9 +17,27 @@ import {
   DollarSign,
   ArrowRight,
   Sparkles,
-  Edit3
+  Edit3,
+  Plus,
+  Trash2,
+  Edit2,
+  Star,
+  Building,
+  X
 } from 'lucide-react';
-import { Order } from '../../types';
+import { Order, BankAccount, PaymentGateway } from '../../types';
+
+const MOROCCAN_BANK_PRESETS = [
+  { name: 'Attijariwafa Bank', badge: 'Attijari Mobile' },
+  { name: 'CIH Bank', badge: 'CIH Mobile' },
+  { name: 'Banque Populaire (BCP)', badge: 'Chaabi Net' },
+  { name: 'Bank of Africa (BMCE)', badge: 'BMCE Direct' },
+  { name: 'Al Barid Bank', badge: 'Barid Bank' },
+  { name: 'CFG Bank', badge: 'CFG Mobile' },
+  { name: 'Société Générale Maroc', badge: 'SGMB' },
+  { name: 'BMCI', badge: 'BMCI Connect' },
+  { name: 'Crédit du Maroc', badge: 'CDM' }
+];
 
 export const BankTransfersTab: React.FC = () => {
   const {
@@ -28,7 +46,8 @@ export const BankTransfersTab: React.FC = () => {
     rejectOrder,
     formatPrice,
     paymentGateways,
-    updatePaymentGateway
+    updatePaymentGateway,
+    showToast
   } = useStore();
 
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed' | 'refunded'>('all');
@@ -36,14 +55,35 @@ export const BankTransfersTab: React.FC = () => {
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [editingBankConfig, setEditingBankConfig] = useState(false);
 
+  // Bank Form State for adding/editing banks
+  const [isAddingBank, setIsAddingBank] = useState(false);
+  const [editingBankId, setEditingBankId] = useState<string | null>(null);
+  const [formBankName, setFormBankName] = useState('');
+  const [formHolder, setFormHolder] = useState('BHSS SHOP DIGITAL');
+  const [formRib, setFormRib] = useState('');
+  const [formBadge, setFormBadge] = useState('Instantané (0 DH)');
+  const [formIsDefault, setFormIsDefault] = useState(false);
+
   // Find Moroccan bank gateway
   const bankGateway = paymentGateways.find(
     (g) => g.type === 'moroccan_bank' || g.id === 'moroccan_bank_cih'
   );
 
-  const [bankName, setBankName] = useState(bankGateway?.bankName || 'CIH Bank Maroc');
-  const [accountHolder, setAccountHolder] = useState(bankGateway?.accountHolder || 'BHSS SHOP DIGITAL');
-  const [ribNumber, setRibNumber] = useState(bankGateway?.ribNumber || '230 780 00012345678901 23');
+  const bankAccountsList: BankAccount[] =
+    bankGateway?.bankAccounts && bankGateway.bankAccounts.length > 0
+      ? bankGateway.bankAccounts
+      : bankGateway
+      ? [
+          {
+            id: 'bank-default',
+            bankName: bankGateway.bankName || 'CIH Bank',
+            accountHolder: bankGateway.accountHolder || 'BHSS SHOP DIGITAL',
+            ribNumber: bankGateway.ribNumber || '230 780 00012345678901 23',
+            badge: 'Instantané',
+            isDefault: true
+          }
+        ]
+      : [];
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -51,15 +91,131 @@ export const BankTransfersTab: React.FC = () => {
     setTimeout(() => setCopiedText(null), 2000);
   };
 
-  const handleSaveBankConfig = (e: React.FormEvent) => {
+  const resetForm = () => {
+    setIsAddingBank(false);
+    setEditingBankId(null);
+    setFormBankName('');
+    setFormHolder(bankGateway?.accountHolder || 'BHSS SHOP DIGITAL');
+    setFormRib('');
+    setFormBadge('');
+    setFormIsDefault(false);
+  };
+
+  const handleOpenAdd = () => {
+    setEditingBankId(null);
+    setFormBankName('');
+    setFormHolder(bankGateway?.accountHolder || 'BHSS SHOP DIGITAL');
+    setFormRib('');
+    setFormBadge('Sans frais • 0 DH');
+    setFormIsDefault(false);
+    setIsAddingBank(true);
+  };
+
+  const handleOpenEdit = (acc: BankAccount) => {
+    setEditingBankId(acc.id);
+    setFormBankName(acc.bankName);
+    setFormHolder(acc.accountHolder);
+    setFormRib(acc.ribNumber);
+    setFormBadge(acc.badge || '');
+    setFormIsDefault(Boolean(acc.isDefault));
+    setIsAddingBank(true);
+  };
+
+  const handleSaveBank = (e: React.FormEvent) => {
     e.preventDefault();
-    if (bankGateway) {
-      updatePaymentGateway(bankGateway.id, {
-        bankName,
-        accountHolder,
-        ribNumber
+    if (!bankGateway) return;
+
+    if (!formBankName.trim() || !formRib.trim()) {
+      showToast('يرجى إدخال اسم البنك ورقم الحساب (RIB).', 'error');
+      return;
+    }
+
+    let updatedList: BankAccount[] = [];
+
+    if (editingBankId) {
+      updatedList = bankAccountsList.map((a) => {
+        if (a.id === editingBankId) {
+          return {
+            ...a,
+            bankName: formBankName.trim(),
+            accountHolder: formHolder.trim() || 'BHSS SHOP DIGITAL',
+            ribNumber: formRib.trim(),
+            badge: formBadge.trim() || undefined,
+            isDefault: formIsDefault ? true : a.isDefault
+          };
+        }
+        return formIsDefault ? { ...a, isDefault: false } : a;
       });
-      setEditingBankConfig(false);
+    } else {
+      const newAcc: BankAccount = {
+        id: `bank-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        bankName: formBankName.trim(),
+        accountHolder: formHolder.trim() || 'BHSS SHOP DIGITAL',
+        ribNumber: formRib.trim(),
+        badge: formBadge.trim() || undefined,
+        isDefault: formIsDefault || bankAccountsList.length === 0
+      };
+
+      if (newAcc.isDefault) {
+        updatedList = bankAccountsList.map((a) => ({ ...a, isDefault: false }));
+        updatedList.push(newAcc);
+      } else {
+        updatedList = [...bankAccountsList, newAcc];
+      }
+    }
+
+    const defaultAcc = updatedList.find((a) => a.isDefault) || updatedList[0];
+
+    updatePaymentGateway(bankGateway.id, {
+      bankAccounts: updatedList,
+      bankName: defaultAcc?.bankName || formBankName.trim(),
+      accountHolder: defaultAcc?.accountHolder || formHolder.trim(),
+      ribNumber: defaultAcc?.ribNumber || formRib.trim()
+    });
+
+    showToast(`تم حفظ حساب بنك "${formBankName}" بنجاح!`, 'success');
+    resetForm();
+  };
+
+  const handleDeleteBank = (accountId: string) => {
+    if (!bankGateway) return;
+    if (bankAccountsList.length <= 1) {
+      showToast('يجب الاحتفاظ بحساب بنكي واحد على الأقل للمتجر.', 'error');
+      return;
+    }
+
+    const updatedList = bankAccountsList.filter((a) => a.id !== accountId);
+    if (!updatedList.some((a) => a.isDefault)) {
+      updatedList[0].isDefault = true;
+    }
+
+    const defaultAcc = updatedList.find((a) => a.isDefault) || updatedList[0];
+
+    updatePaymentGateway(bankGateway.id, {
+      bankAccounts: updatedList,
+      bankName: defaultAcc.bankName,
+      accountHolder: defaultAcc.accountHolder,
+      ribNumber: defaultAcc.ribNumber
+    });
+
+    showToast('تم حذف الحساب البنكي.', 'info');
+  };
+
+  const handleSetDefault = (accountId: string) => {
+    if (!bankGateway) return;
+    const updatedList = bankAccountsList.map((a) => ({
+      ...a,
+      isDefault: a.id === accountId
+    }));
+    const target = updatedList.find((a) => a.id === accountId);
+    if (target) {
+      updatePaymentGateway(bankGateway.id, {
+        bankAccounts: updatedList,
+        bankName: target.bankName,
+        accountHolder: target.accountHolder,
+        ribNumber: target.ribNumber
+      });
+      showToast(`تم تعيين بنك "${target.bankName}" كحساب رئيسي للمتجر.`, 'success');
     }
   };
 
@@ -87,10 +243,13 @@ export const BankTransfersTab: React.FC = () => {
       const matchEmail = order.customerEmail.toLowerCase().includes(term);
       const matchRef = (order.bankTransferRef || '').toLowerCase().includes(term);
       const matchTx = (order.paymentTxId || '').toLowerCase().includes(term);
-      return matchNumber || matchEmail || matchRef || matchTx;
+      const matchBank = (order.bankName || '').toLowerCase().includes(term);
+      return matchNumber || matchEmail || matchRef || matchTx || matchBank;
     }
     return true;
   });
+
+  const defaultBank = bankAccountsList.find((a) => a.isDefault) || bankAccountsList[0];
 
   return (
     <div className="space-y-6">
@@ -106,7 +265,7 @@ export const BankTransfersTab: React.FC = () => {
                 التحويلات البنكية والتحقق من الدفع قبل الاستلام
               </h3>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-extrabold border border-emerald-500/30">
-                CIH / Virement
+                {bankAccountsList.length} بنوك معتمدة • Virement
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -119,79 +278,236 @@ export const BankTransfersTab: React.FC = () => {
           onClick={() => setEditingBankConfig(!editingBankConfig)}
           className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition cursor-pointer self-start md:self-auto shrink-0"
         >
-          <Edit3 className="w-3.5 h-3.5 text-cyan-400" />
-          <span>{editingBankConfig ? 'إغلاق الإعدادات' : 'تعديل بيانات الحساب البنكي (RIB)'}</span>
+          <Building className="w-3.5 h-3.5 text-emerald-400" />
+          <span>{editingBankConfig ? 'إغلاق إدارة الأبناك' : 'إدارة حسابات الأبناك المغربية (RIB)'}</span>
         </button>
       </div>
 
-      {/* Edit Bank Config Modal/Section */}
+      {/* Moroccan Bank Accounts Management Panel */}
       {editingBankConfig && (
-        <form
-          onSubmit={handleSaveBankConfig}
-          className="p-5 rounded-2xl bg-slate-950 border border-cyan-500/40 space-y-4 animate-in fade-in"
-        >
-          <div className="flex items-center justify-between">
-            <h4 className="text-xs font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-2">
-              <Landmark className="w-4 h-4" />
-              <span>إعدادات الحساب البنكي المعتمد في المتجر</span>
-            </h4>
-            <span className="text-[11px] text-slate-400">تظهر هذه المعلومات للزبناء عند الدفع عبر Virement</span>
+        <div className="p-5 rounded-2xl bg-slate-950 border border-emerald-500/40 space-y-4 animate-in fade-in">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-800">
+            <div>
+              <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                <Landmark className="w-4 h-4" />
+                <span>إدارة الحسابات البنكية المغربية المعتمدة (Attijariwafa, CIH, Chaabi, etc.)</span>
+              </h4>
+              <p className="text-[11px] text-slate-400">
+                يمكنك إضافة عدة أبناك أو تغيير اسم البنك ورقم الـ RIB بسهولة. يختار الزبون البنك المفضل له عند الشراء.
+              </p>
+            </div>
+
+            {!isAddingBank && (
+              <button
+                type="button"
+                onClick={handleOpenAdd}
+                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 self-start sm:self-auto cursor-pointer shadow"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>إضافة بنك جديد</span>
+              </button>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div>
-              <label className="text-[11px] font-bold text-slate-400 block mb-1">اسم البنك</label>
-              <input
-                type="text"
-                required
-                value={bankName}
-                onChange={(e) => setBankName(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500"
-                placeholder="CIH Bank / Attijariwafa"
-              />
-            </div>
-
-            <div>
-              <label className="text-[11px] font-bold text-slate-400 block mb-1">اسم صاحب الحساب (Titulaire)</label>
-              <input
-                type="text"
-                required
-                value={accountHolder}
-                onChange={(e) => setAccountHolder(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500"
-                placeholder="BHSS SHOP / Nom & Prénom"
-              />
-            </div>
-
-            <div>
-              <label className="text-[11px] font-bold text-slate-400 block mb-1">رقم الـ RIB (24 رقماً)</label>
-              <input
-                type="text"
-                required
-                value={ribNumber}
-                onChange={(e) => setRibNumber(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-mono text-emerald-400 focus:outline-none focus:border-emerald-500"
-                placeholder="230 780 00012345678901 23"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setEditingBankConfig(false)}
-              className="px-4 py-2 rounded-xl bg-slate-800 text-slate-400 text-xs font-bold hover:text-white"
+          {/* Form to Add or Edit a Bank */}
+          {isAddingBank && (
+            <form
+              onSubmit={handleSaveBank}
+              className="p-4 rounded-xl bg-slate-900 border border-emerald-500/40 space-y-3"
             >
-              إلغاء
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/20"
-            >
-              حفظ بيانات الـ RIB
-            </button>
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <Building className="w-3.5 h-3.5 text-emerald-400" />
+                  {editingBankId ? 'تعديل بيانات البنك' : 'إضافة حساب بنكي جديد'}
+                </span>
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="p-1 rounded-lg text-slate-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Quick Preset Buttons */}
+              <div className="space-y-1">
+                <span className="text-[10px] text-slate-400 font-semibold">
+                  اختر بنكاً مغربياً من القائمة السريعة (أو اكتب أي بنك تريده في الحقل أدناه):
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {MOROCCAN_BANK_PRESETS.map((preset) => (
+                    <button
+                      key={preset.name}
+                      type="button"
+                      onClick={() => {
+                        setFormBankName(preset.name);
+                        if (!formBadge) setFormBadge(preset.badge);
+                      }}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition cursor-pointer ${
+                        formBankName === preset.name
+                          ? 'bg-emerald-600 text-white border-emerald-400'
+                          : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      {preset.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[11px] font-bold text-slate-400 block mb-1">اسم البنك *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formBankName}
+                    onChange={(e) => setFormBankName(e.target.value)}
+                    placeholder="مثال: Attijariwafa Bank أو CIH Bank"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-emerald-300 font-bold focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-400 block mb-1">صاحب الحساب (Titulaire) *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formHolder}
+                    onChange={(e) => setFormHolder(e.target.value)}
+                    placeholder="BHSS SHOP / الاسم الكامل"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-400 block mb-1">شارة / ملاحظة (اختياري)</label>
+                  <input
+                    type="text"
+                    value={formBadge}
+                    onChange={(e) => setFormBadge(e.target.value)}
+                    placeholder="مثال: بدون اقتطاعات • فوري"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-[11px] font-bold text-slate-400">رقم الحساب البنكي (RIB - 24 رقماً) *</label>
+                  <span className="text-[10px] font-mono text-slate-500">
+                    {formRib.replace(/\s+/g, '').length} / 24 رقماً
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  required
+                  value={formRib}
+                  onChange={(e) => setFormRib(e.target.value)}
+                  placeholder="007 780 00012345678901 23"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-cyan-300 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={formIsDefault}
+                    onChange={(e) => setFormIsDefault(e.target.checked)}
+                    className="rounded bg-slate-950 border-slate-800 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <span>تعيين هذا الحساب كحساب رئيسي افتراضي</span>
+                </label>
+
+                <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="px-4 py-2 rounded-xl bg-slate-800 text-slate-400 text-xs font-bold hover:text-white cursor-pointer"
+                  >
+                    إلغاء
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/20 cursor-pointer"
+                  >
+                    {editingBankId ? 'حفظ التعديلات' : 'إضافة هذا البنك للمتجر'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          )}
+
+          {/* List of currently active banks */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {bankAccountsList.map((b) => (
+              <div
+                key={b.id}
+                className={`p-3.5 rounded-xl border relative transition flex flex-col justify-between ${
+                  b.isDefault
+                    ? 'bg-emerald-950/40 border-emerald-500/60 shadow-sm ring-1 ring-emerald-500/30'
+                    : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                }`}
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-white flex items-center gap-1.5">
+                      <Landmark className="w-3.5 h-3.5 text-emerald-400" />
+                      {b.bankName}
+                    </span>
+                    {b.isDefault ? (
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-extrabold border border-emerald-500/40">
+                        الافتراضي
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleSetDefault(b.id)}
+                        className="text-[10px] text-slate-400 hover:text-emerald-400 flex items-center gap-1 cursor-pointer"
+                      >
+                        <Star className="w-3 h-3" /> تعيين رئيسي
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="text-[11px] text-slate-400">
+                    صاحب الحساب: <span className="text-slate-200 font-medium">{b.accountHolder}</span>
+                  </div>
+
+                  <div className="text-[11px] font-mono text-cyan-300 bg-slate-950 px-2 py-1 rounded border border-slate-800/80 truncate">
+                    RIB: {b.ribNumber}
+                  </div>
+
+                  {b.badge && (
+                    <span className="inline-block text-[10px] text-emerald-400 font-mono">
+                      • {b.badge}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-end gap-1.5 pt-2 mt-2 border-t border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEdit(b)}
+                    className="px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Edit2 className="w-3 h-3 text-cyan-400" /> تعديل
+                  </button>
+                  {bankAccountsList.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteBank(b.id)}
+                      className="px-2 py-1 rounded-md bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-xs flex items-center gap-1 cursor-pointer"
+                    >
+                      <Trash2 className="w-3 h-3" /> حذف
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        </form>
+        </div>
       )}
 
       {/* KPI Stats Cards */}
@@ -233,15 +549,15 @@ export const BankTransfersTab: React.FC = () => {
         {/* Card 3: Active Bank Details */}
         <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold text-slate-400 uppercase">حساب التحويل النشط</span>
-            <span className="text-[10px] text-emerald-400 font-bold">نشط 24/7</span>
+            <span className="text-[10px] font-semibold text-slate-400 uppercase">حسابات الأبناك للمتجر</span>
+            <span className="text-[10px] text-emerald-400 font-bold">{bankAccountsList.length} بنوك نشطة</span>
           </div>
           <div className="text-xs font-bold text-white flex items-center gap-1.5">
             <Landmark className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{bankGateway?.bankName || 'CIH Bank Maroc'}</span>
+            <span>{defaultBank?.bankName || 'Virement Bancaire Maroc'} (الافتراضي)</span>
           </div>
           <div className="text-[11px] text-slate-400 font-mono truncate">
-            RIB: {bankGateway?.ribNumber || '230 780 00012345678901 23'}
+            RIB: {defaultBank?.ribNumber || '230 780 00012345678901 23'}
           </div>
         </div>
       </div>
@@ -300,7 +616,7 @@ export const BankTransfersTab: React.FC = () => {
         <div className="p-12 text-center rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
           <Landmark className="w-8 h-8 text-slate-600 mx-auto" />
           <p className="text-xs font-bold text-slate-400">لا توجد تحويلات بنكية مطابقة للبحث حالياً.</p>
-          <p className="text-[11px] text-slate-600">أي طلبية تتم عبر CIH Bank أو التحويل البنكي ستظهر هنا فوراً.</p>
+          <p className="text-[11px] text-slate-600">أي طلبية تتم عبر التحويلات البنكية المغربية (Attijari, CIH, Chaabi...) ستظهر هنا فوراً.</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -389,6 +705,15 @@ export const BankTransfersTab: React.FC = () => {
                       <span className="text-slate-400">طريقة الدفع:</span>
                       <span className="font-bold text-emerald-400">{order.paymentMethod}</span>
                     </div>
+                    {order.bankName && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400">البنك المختار:</span>
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 flex items-center gap-1 text-[11px]">
+                          <Landmark className="w-3 h-3" />
+                          {order.bankName}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between">
                       <span className="text-slate-400">Motif / مرجع التحويل:</span>
                       <div className="flex items-center gap-1.5">

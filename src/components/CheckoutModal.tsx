@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useStore } from '../context/StoreContext';
+import { BankAccount } from '../types';
 import {
   X,
   ShieldCheck,
@@ -40,6 +41,7 @@ export const CheckoutModal: React.FC = () => {
   const [email, setEmail] = useState('');
   const [discord, setDiscord] = useState('');
   const [selectedGatewayId, setSelectedGatewayId] = useState('crypto_usdt');
+  const [selectedBankId, setSelectedBankId] = useState('');
   const [txHash, setTxHash] = useState('');
   const [cardNumber, setCardNumber] = useState('4242 •••• •••• 4242');
   const [cardExpiry, setCardExpiry] = useState('12/28');
@@ -56,6 +58,35 @@ export const CheckoutModal: React.FC = () => {
     paymentGateways.find((g) => g.id === selectedGatewayId) ||
     paymentGateways.find((g) => g.enabled) ||
     paymentGateways[0];
+
+  // List of active bank accounts configured by the store owner for Moroccan transfer
+  const moroccanBankAccounts: BankAccount[] = useMemo(() => {
+    if (selectedGateway?.bankAccounts && selectedGateway.bankAccounts.length > 0) {
+      return selectedGateway.bankAccounts;
+    }
+    if (selectedGateway?.bankName || selectedGateway?.ribNumber) {
+      return [
+        {
+          id: 'default-bank',
+          bankName: selectedGateway.bankName || 'Virement Bancaire Maroc',
+          accountHolder: selectedGateway.accountHolder || 'BHSS SHOP DIGITAL',
+          ribNumber: selectedGateway.ribNumber || '230 780 00012345678901 23',
+          badge: 'Sans frais',
+          isDefault: true
+        }
+      ];
+    }
+    return [];
+  }, [selectedGateway]);
+
+  // Selected bank account
+  const activeBank = useMemo(() => {
+    if (moroccanBankAccounts.length === 0) return null;
+    const found = moroccanBankAccounts.find((b) => b.id === selectedBankId);
+    if (found) return found;
+    const defaultOne = moroccanBankAccounts.find((b) => b.isDefault);
+    return defaultOne || moroccanBankAccounts[0];
+  }, [moroccanBankAccounts, selectedBankId]);
 
   const handleCopy = (text: string, type: 'address' | 'rib' | 'binance') => {
     navigator.clipboard.writeText(text);
@@ -100,13 +131,17 @@ export const CheckoutModal: React.FC = () => {
       setProcessingStep('2/2 Réservation sécurisée de vos licences en attente de validation...');
       await new Promise((r) => setTimeout(r, 600));
 
+      const bankNameUsed = activeBank?.bankName || selectedGateway.bankName || 'Virement Bancaire';
+      const cleanBankPrefix = bankNameUsed.replace(/[^a-zA-Z0-9]/g, '').slice(0, 4).toUpperCase() || 'TRF';
+
       await placeOrder({
         email,
         discord,
-        paymentMethod: selectedGateway.name,
-        paymentTxId: txHash || (isMoroccanBank ? `CIH-${Math.random().toString(36).substring(2, 8).toUpperCase()}` : undefined),
+        paymentMethod: isMoroccanBank ? `${selectedGateway.name} (${bankNameUsed})` : selectedGateway.name,
+        bankName: isMoroccanBank ? bankNameUsed : undefined,
+        paymentTxId: txHash || (isMoroccanBank ? `${cleanBankPrefix}-${Math.random().toString(36).substring(2, 8).toUpperCase()}` : undefined),
         bankTransferRef: isMoroccanBank
-          ? (txHash ? `${txHash} (Motif: ${orderMotif})` : `Motif: ${orderMotif}`)
+          ? (txHash ? `${txHash} [${bankNameUsed}] (Motif: ${orderMotif})` : `[${bankNameUsed}] Motif: ${orderMotif}`)
           : (txHash ? `Réf: ${txHash}` : undefined),
         requiresVerification: true
       });
@@ -132,11 +167,32 @@ export const CheckoutModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden my-6 max-h-[92vh] flex flex-col">
+      <div 
+        style={{
+          backgroundColor: 'var(--theme-card-bg, #111827)',
+          borderColor: 'var(--theme-border, #1f293d)',
+          borderRadius: 'var(--theme-radius, 24px)',
+          boxShadow: '0 25px 60px -15px var(--theme-glow, rgba(0, 0, 0, 0.7))'
+        }}
+        className="relative w-full max-w-2xl border shadow-2xl overflow-hidden my-6 max-h-[92vh] flex flex-col"
+      >
         {/* Header */}
-        <div className="p-5 md:p-6 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 shrink-0">
+        <div 
+          style={{
+            backgroundColor: 'var(--theme-bg-subtle, rgba(15, 23, 42, 0.5))',
+            borderColor: 'var(--theme-border, #1f293d)'
+          }}
+          className="p-5 md:p-6 border-b flex items-center justify-between shrink-0"
+        >
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
+            <div 
+              style={{
+                backgroundColor: 'rgba(var(--theme-primary-rgb, 99, 102, 241), 0.15)',
+                borderColor: 'var(--theme-border, #1f293d)',
+                color: 'var(--theme-primary, #6366f1)'
+              }}
+              className="p-2 rounded-xl border"
+            >
               <Lock className="w-5 h-5" />
             </div>
             <div>
@@ -160,12 +216,15 @@ export const CheckoutModal: React.FC = () => {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-                <span className="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px]">
+                <span 
+                  style={{ backgroundColor: 'var(--theme-primary, #6366f1)' }}
+                  className="w-5 h-5 rounded-full text-white flex items-center justify-center text-[10px] font-bold"
+                >
                   1
                 </span>
                 <span>Delivery Email & Contact</span>
               </label>
-              <span className="text-[11px] text-cyan-400 flex items-center gap-1 font-medium">
+              <span className="text-[11px] flex items-center gap-1 font-medium" style={{ color: 'var(--theme-accent, #06b6d4)' }}>
                 <Zap className="w-3 h-3" /> Sent immediately here
               </span>
             </div>
@@ -178,7 +237,7 @@ export const CheckoutModal: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your.email@example.com *"
-                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs md:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs md:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-[var(--theme-primary,#6366f1)]"
                 />
               </div>
 
@@ -188,7 +247,7 @@ export const CheckoutModal: React.FC = () => {
                   value={discord}
                   onChange={(e) => setDiscord(e.target.value)}
                   placeholder="Discord tag / Telegram (optional)"
-                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs md:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs md:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-[var(--theme-primary,#6366f1)]"
                 />
               </div>
             </div>
@@ -197,7 +256,10 @@ export const CheckoutModal: React.FC = () => {
           {/* Step 2: Payment Method Selection */}
           <div className="space-y-3">
             <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px]">
+              <span 
+                style={{ backgroundColor: 'var(--theme-primary, #6366f1)' }}
+                className="w-5 h-5 rounded-full text-white flex items-center justify-center text-[10px] font-bold"
+              >
                 2
               </span>
               <span>Choose Payment Gateway</span>
@@ -210,9 +272,18 @@ export const CheckoutModal: React.FC = () => {
                   <div
                     key={gw.id}
                     onClick={() => setSelectedGatewayId(gw.id)}
+                    style={
+                      isSelected
+                        ? {
+                            borderColor: 'var(--theme-primary, #6366f1)',
+                            backgroundColor: 'rgba(var(--theme-primary-rgb, 99, 102, 241), 0.12)',
+                            boxShadow: '0 4px 14px -2px var(--theme-glow, rgba(99, 102, 241, 0.25))'
+                          }
+                        : undefined
+                    }
                     className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
                       isSelected
-                        ? 'bg-indigo-950/40 border-indigo-500 text-white shadow-lg shadow-indigo-600/10'
+                        ? 'text-white'
                         : 'bg-slate-950/50 border-slate-800/80 text-slate-300 hover:border-slate-700'
                     }`}
                   >
@@ -397,17 +468,51 @@ export const CheckoutModal: React.FC = () => {
               </div>
             )}
 
-            {/* GATEWAY DETAILS: 3. MOROCCAN BANK / CIH BANK */}
+            {/* GATEWAY DETAILS: 3. MOROCCAN BANK / DIRECT TRANSFER */}
             {selectedGateway.type === 'moroccan_bank' && (
-              <div className="p-4 rounded-2xl bg-slate-950/80 border border-emerald-500/30 space-y-3 text-xs">
+              <div className="p-4 rounded-2xl bg-slate-950/80 border border-emerald-500/30 space-y-3.5 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-emerald-400 flex items-center gap-1.5">
-                    <Building className="w-4 h-4" /> {selectedGateway.bankName || 'CIH Bank Maroc'}
+                    <Building className="w-4 h-4" /> {activeBank?.bankName || selectedGateway.bankName || 'Virement Bancaire Maroc'}
                   </span>
                   <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono font-bold">
-                    VIREMENT INSTANTANÉ (0 DH FRAIS)
+                    {activeBank?.badge || 'SANS FRAIS • 0 DH'}
                   </span>
                 </div>
+
+                {/* Multiple Moroccan Banks Selector */}
+                {moroccanBankAccounts.length > 1 && (
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Sélectionnez la banque de destination :
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {moroccanBankAccounts.map((b) => {
+                        const isChosen = activeBank?.id === b.id;
+                        return (
+                          <button
+                            key={b.id}
+                            type="button"
+                            onClick={() => setSelectedBankId(b.id)}
+                            className={`p-2.5 rounded-xl border text-left rtl:text-right transition cursor-pointer flex flex-col justify-between ${
+                              isChosen
+                                ? 'bg-emerald-950/70 border-emerald-500 text-white shadow-sm ring-1 ring-emerald-500/40'
+                                : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                            }`}
+                          >
+                            <div className="text-xs font-bold text-slate-100 flex items-center gap-1">
+                              <Building className={`w-3.5 h-3.5 shrink-0 ${isChosen ? 'text-emerald-400' : 'text-slate-500'}`} />
+                              <span className="truncate">{b.bankName}</span>
+                            </div>
+                            <span className="text-[9px] text-emerald-400 font-mono mt-1">
+                              {b.badge || 'Compte vérifié'}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 <div className="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 space-y-3">
                   <div className="flex items-center justify-between pb-2 border-b border-slate-800">
@@ -427,8 +532,13 @@ export const CheckoutModal: React.FC = () => {
 
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-[11px]">
+                      <span className="text-slate-400">Banque:</span>
+                      <span className="font-bold text-emerald-300">{activeBank?.bankName || selectedGateway.bankName || 'Banque Maroc'}</span>
+                    </div>
+
+                    <div className="flex justify-between text-[11px]">
                       <span className="text-slate-400">Titulaire du compte:</span>
-                      <span className="font-bold text-white">{selectedGateway.accountHolder || 'BHSS SHOP DIGITAL'}</span>
+                      <span className="font-bold text-white">{activeBank?.accountHolder || selectedGateway.accountHolder || 'BHSS SHOP DIGITAL'}</span>
                     </div>
 
                     <div>
@@ -437,17 +547,17 @@ export const CheckoutModal: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="p-2 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs font-bold text-emerald-300 flex-1 truncate">
-                          {selectedGateway.ribNumber || '230 780 00012345678901 23'}
+                          {activeBank?.ribNumber || selectedGateway.ribNumber || '230 780 00012345678901 23'}
                         </span>
                         <button
                           type="button"
                           onClick={() =>
                             handleCopy(
-                              selectedGateway.ribNumber || '230 780 00012345678901 23',
+                              activeBank?.ribNumber || selectedGateway.ribNumber || '230 780 00012345678901 23',
                               'rib'
                             )
                           }
-                          className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1 shrink-0 cursor-pointer shadow"
+                          className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1 shrink-0 cursor-pointer shadow transition-colors"
                         >
                           {copiedRib ? (
                             <>
@@ -474,7 +584,7 @@ export const CheckoutModal: React.FC = () => {
                     type="text"
                     value={txHash}
                     onChange={(e) => setTxHash(e.target.value)}
-                    placeholder="Ex: Virement CIH Mobile effectué par Omar..."
+                    placeholder={`Ex: Virement ${activeBank?.bankName || 'Bancaire'} effectué par Omar...`}
                     className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
@@ -624,10 +734,18 @@ export const CheckoutModal: React.FC = () => {
           <button
             type="submit"
             disabled={isProcessing || cart.length === 0}
+            style={
+              isMoroccanBank
+                ? undefined
+                : {
+                    background: 'var(--theme-gradient, linear-gradient(135deg, #6366f1 0%, #06b6d4 100%))',
+                    boxShadow: '0 10px 25px -4px var(--theme-glow, rgba(99, 102, 241, 0.35))'
+                  }
+            }
             className={`w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl text-white font-black text-sm shadow-xl disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer ${
               isMoroccanBank
                 ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 shadow-emerald-600/30'
-                : 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 shadow-indigo-600/30'
+                : ''
             }`}
           >
             {isProcessing ? (

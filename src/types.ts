@@ -96,6 +96,7 @@ export interface Order {
   deliveredKeys: OrderDeliveredItem[];
   paymentTxId?: string;
   bankTransferRef?: string;
+  bankName?: string;
   requiresVerification?: boolean;
   vaultUnlocked?: boolean;
   verifiedAt?: string;
@@ -142,6 +143,15 @@ export interface Currency {
   flag: string;
 }
 
+export interface BankAccount {
+  id: string;
+  bankName: string;
+  accountHolder: string;
+  ribNumber: string;
+  badge?: string;
+  isDefault?: boolean;
+}
+
 export interface PaymentGateway {
   id: string;
   name: string;
@@ -158,8 +168,39 @@ export interface PaymentGateway {
   bankName?: string;
   accountHolder?: string;
   ribNumber?: string;
+  bankAccounts?: BankAccount[];
   stripePaymentLink?: string;
   type?: 'crypto' | 'binance' | 'paypal' | 'moroccan_bank' | 'card';
+}
+
+export type ThemeId =
+  | 'cyber-indigo'
+  | 'emerald-matrix'
+  | 'crimson-rog'
+  | 'amethyst-nebula'
+  | 'sunset-amber'
+  | 'midnight-sapphire'
+  | 'monochrome-stealth'
+  | 'cyberpunk-2077';
+
+export type ColorMode = 'dark' | 'light';
+
+export interface FullThemeCustomization {
+  bg?: string;
+  bgSubtle?: string;
+  cardBg?: string;
+  headerBg?: string;
+  border?: string;
+  primary?: string;
+  primaryHover?: string;
+  accent?: string;
+  textColor?: string;
+  textMutedColor?: string;
+  borderRadius?: 'none' | 'small' | 'medium' | 'large' | 'full';
+  glowIntensity?: 'none' | 'subtle' | 'medium' | 'high';
+  fontFamily?: 'default' | 'outfit' | 'jakarta' | 'mono';
+  enableCyberBlobs?: boolean;
+  enableHeaderGlass?: boolean;
 }
 
 export interface StoreSettings {
@@ -173,4 +214,9 @@ export interface StoreSettings {
   autoDeliveryEnabled: boolean;
   requireManualPaymentVerification?: boolean;
   maintenanceMode: boolean;
+  activeTheme?: ThemeId;
+  colorMode?: ColorMode;
+  customPrimaryColor?: string;
+  customAccentColor?: string;
+  customTheme?: FullThemeCustomization;
 }

@@ -17,13 +17,21 @@ import {
 } from 'lucide-react';
 
 export const DigitalVaultModal: React.FC = () => {
-  const { isVaultOpen, setIsVaultOpen, vaultItems, orders } = useStore();
+  const { isVaultOpen, setIsVaultOpen, vaultItems, myOrders, lookupAndRestoreCustomerOrders } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
+  const [lookupQuery, setLookupQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   if (!isVaultOpen) return null;
 
-  const pendingOrders = orders.filter((o) => o.status === 'pending');
+  const pendingOrders = myOrders.filter((o) => o.status === 'pending');
+
+  const handleLookup = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (lookupQuery.trim()) {
+      lookupAndRestoreCustomerOrders(lookupQuery);
+    }
+  };
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -78,17 +86,45 @@ ${item.instructions}
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
-      <div className="relative w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden my-6 flex flex-col max-h-[90vh]">
+      <div 
+        style={{
+          backgroundColor: 'var(--theme-card-bg, #111827)',
+          borderColor: 'var(--theme-border, #1f293d)',
+          borderRadius: 'var(--theme-radius, 24px)',
+          boxShadow: '0 25px 60px -15px var(--theme-glow, rgba(0, 0, 0, 0.7))'
+        }}
+        className="relative w-full max-w-3xl border shadow-2xl overflow-hidden my-6 flex flex-col max-h-[90vh]"
+      >
         {/* Header */}
-        <div className="p-5 md:p-6 border-b border-slate-800 flex items-center justify-between bg-slate-950/50 shrink-0">
+        <div 
+          style={{
+            backgroundColor: 'var(--theme-bg-subtle, rgba(15, 23, 42, 0.5))',
+            borderColor: 'var(--theme-border, #1f293d)'
+          }}
+          className="p-5 md:p-6 border-b flex items-center justify-between shrink-0"
+        >
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
+            <div 
+              style={{
+                backgroundColor: 'rgba(var(--theme-primary-rgb, 99, 102, 241), 0.15)',
+                borderColor: 'var(--theme-border, #1f293d)',
+                color: 'var(--theme-primary, #6366f1)'
+              }}
+              className="p-2.5 rounded-2xl border"
+            >
               <KeyRound className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg md:text-xl font-black text-white">My Digital Key Vault</h2>
-                <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-bold text-xs border border-indigo-500/30">
+                <span 
+                  style={{
+                    backgroundColor: 'rgba(var(--theme-primary-rgb, 99, 102, 241), 0.15)',
+                    color: 'var(--theme-primary, #6366f1)',
+                    borderColor: 'var(--theme-border, #1f293d)'
+                  }}
+                  className="px-2 py-0.5 rounded-full font-bold text-xs border"
+                >
                   {vaultItems.length} active
                 </span>
               </div>
@@ -147,14 +183,47 @@ ${item.instructions}
           )}
 
           {filteredItems.length === 0 ? (
-            <div className="text-center py-16 space-y-3">
-              <div className="w-16 h-16 mx-auto rounded-2xl bg-slate-800/50 border border-slate-700/50 flex items-center justify-center text-slate-500">
-                <KeyRound className="w-8 h-8" />
+            <div className="text-center py-12 space-y-4">
+              <div className="w-16 h-16 mx-auto rounded-3xl bg-slate-800/60 border border-slate-700/60 flex items-center justify-center text-slate-500">
+                <KeyRound className="w-8 h-8 text-slate-400" />
               </div>
-              <h3 className="text-base font-bold text-slate-200">No keys found in vault</h3>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                Any digital license or game key you purchase is automatically stored here permanently.
-              </p>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-slate-200">
+                  {searchTerm ? 'No matching keys found' : 'Your Digital Key Vault is Empty'}
+                </h3>
+                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                  {searchTerm
+                    ? 'Try searching with another keyword or order number.'
+                    : 'Any digital license or game key you purchase on this device will be stored here with instant copy and instructions.'}
+                </p>
+              </div>
+
+              {/* Order Recovery Box */}
+              {!searchTerm && (
+                <div className="pt-2 max-w-md mx-auto">
+                  <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2.5 text-left">
+                    <div className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                      <Search className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>Already bought? Retrieve your keys:</span>
+                    </div>
+                    <form onSubmit={handleLookup} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={lookupQuery}
+                        onChange={(e) => setLookupQuery(e.target.value)}
+                        placeholder="Enter your email or Order # (e.g. BHS-123456)"
+                        className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+                      />
+                      <button
+                        type="submit"
+                        className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition cursor-pointer shrink-0"
+                      >
+                        Restore
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             filteredItems.map((item) => (

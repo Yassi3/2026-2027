@@ -906,16 +906,42 @@ export const INITIAL_PAYMENT_GATEWAYS: PaymentGateway[] = [
   },
   {
     id: 'moroccan_bank',
-    name: 'CIH Bank / Virement Maroc (MAD)',
+    name: 'Virement Bancaire Maroc (MAD)',
     iconName: 'CreditCard',
-    description: 'Virement instantané gratuit CIH à CIH ou interbancaire au Maroc',
+    description: 'Virement bancaire direct au Maroc (CIH, Attijariwafa, Banque Populaire, etc.)',
     feePercentage: 0,
     badge: 'MAROC • SANS FRAIS',
     enabled: true,
-    instructions: 'Effectuez le virement sur notre compte CIH Bank. Les clés sont envoyées dès réception de la confirmation.',
-    bankName: 'CIH Bank (Crédit Immobilier et Hôtelier)',
+    instructions: 'Effectuez le virement sur l\'un de nos comptes bancaires au Maroc. Les clés sont envoyées dès confirmation.',
+    bankName: 'CIH Bank',
     accountHolder: 'BHSS SHOP DIGITAL',
     ribNumber: '230 780 00012345678901 23',
+    bankAccounts: [
+      {
+        id: 'bank-cih-1',
+        bankName: 'CIH Bank',
+        accountHolder: 'BHSS SHOP DIGITAL',
+        ribNumber: '230 780 00012345678901 23',
+        badge: 'Instantané CIH',
+        isDefault: true
+      },
+      {
+        id: 'bank-attijari-2',
+        bankName: 'Attijariwafa Bank',
+        accountHolder: 'BHSS SHOP DIGITAL',
+        ribNumber: '007 780 00045612398711 55',
+        badge: 'Attijari Mobile',
+        isDefault: false
+      },
+      {
+        id: 'bank-bcp-3',
+        bankName: 'Banque Populaire (BCP)',
+        accountHolder: 'BHSS SHOP DIGITAL',
+        ribNumber: '190 780 00088992211443 89',
+        badge: 'Chaabi Net',
+        isDefault: false
+      }
+    ],
     type: 'moroccan_bank'
   },
   {
@@ -965,7 +991,8 @@ export const INITIAL_SETTINGS: StoreSettings = {
   discordInvite: 'discord.gg/bhsshop',
   autoDeliveryEnabled: false,
   requireManualPaymentVerification: true,
-  maintenanceMode: false
+  maintenanceMode: false,
+  activeTheme: 'cyber-indigo'
 };
 
 export const STORE_STATS = [

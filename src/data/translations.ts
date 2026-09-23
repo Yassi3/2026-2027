@@ -37,6 +37,9 @@ export const TRANSLATIONS = {
     'nav.language': 'Language',
     'nav.latency': '18ms (Online)',
     'nav.adminCenter': 'Admin Control Center',
+    'nav.darkMode': 'Dark Mode',
+    'nav.lightMode': 'Light Mode',
+    'nav.toggleMode': 'Toggle Dark/Light Mode',
 
     // Hero Section
     'hero.badge': 'OFFICIAL DIGITAL LICENSES & KEYS',
@@ -46,10 +49,10 @@ export const TRANSLATIONS = {
       'Genuine retail game keys, Windows & Office licenses, AI subscriptions, and premium VPNs delivered directly to your personal Digital Vault with instant warranty.',
     'hero.feature1': '100% Genuine Retail Keys',
     'hero.feature2': 'Direct Delivery to Vault',
-    'hero.feature3': 'CIH Bank & Crypto Support',
+    'hero.feature3': 'Bank Transfer & Crypto Support',
     'hero.exploreBtn': 'Explore Catalog',
     'hero.openVaultBtn': 'Open My Vault',
-    'hero.trustBadge': 'Moroccan Bank Transfer (CIH) • Crypto USDT • Fast 24/7 Human Support',
+    'hero.trustBadge': 'Moroccan Bank Transfer • Crypto USDT • Fast 24/7 Human Support',
 
     // Category & Filter Bar
     'catalog.allProducts': 'All Products',
@@ -118,7 +121,7 @@ export const TRANSLATIONS = {
     'checkout.discordLabel': 'Discord Handle / WhatsApp (Optional)',
     'checkout.discordPlaceholder': 'For instant direct VIP customer assistance',
     'checkout.paymentMethod': 'Select Payment Method',
-    'checkout.bankTransferInfo': 'Moroccan Bank Transfer (CIH Bank)',
+    'checkout.bankTransferInfo': 'Moroccan Bank Transfer (Direct Virement)',
     'checkout.bankAccountHolder': 'Account Holder',
     'checkout.ribNumber': 'RIB Number',
     'checkout.transferMotif': 'Transfer Reference / Motif',
@@ -208,6 +211,9 @@ export const TRANSLATIONS = {
     'nav.language': 'Langue',
     'nav.latency': '18ms (En Ligne)',
     'nav.adminCenter': 'Panneau Administration',
+    'nav.darkMode': 'Mode Sombre',
+    'nav.lightMode': 'Mode Clair',
+    'nav.toggleMode': 'Basculer Mode Clair/Sombre',
 
     // Hero Section
     'hero.badge': 'LICENCES & CLÉS NUMÉRIQUES OFFICIELLES',
@@ -217,10 +223,10 @@ export const TRANSLATIONS = {
       'Clés de jeux authentiques, licences Windows & Office certifiées, abonnements IA et VPNs premium délivrés directement dans votre Digital Vault personnel avec garantie.',
     'hero.feature1': '100% Clés Retail Authentiques',
     'hero.feature2': 'Livraison Directe dans le Vault',
-    'hero.feature3': 'Support CIH Bank & Cryptos',
+    'hero.feature3': 'Support Virement Bancaire & Cryptos',
     'hero.exploreBtn': 'Explorer le Catalogue',
     'hero.openVaultBtn': 'Ouvrir Mon Vault',
-    'hero.trustBadge': 'Virement CIH Bank Maroc • Crypto USDT • Support Humain Réactif 24/7',
+    'hero.trustBadge': 'Virement Bancaire Maroc • Crypto USDT • Support Humain Réactif 24/7',
 
     // Category & Filter Bar
     'catalog.allProducts': 'Tous les Produits',
@@ -289,7 +295,7 @@ export const TRANSLATIONS = {
     'checkout.discordLabel': 'Pseudo Discord / WhatsApp (Optionnel)',
     'checkout.discordPlaceholder': 'Pour un suivi et support VIP direct',
     'checkout.paymentMethod': 'Sélectionnez le Mode de Paiement',
-    'checkout.bankTransferInfo': 'Virement Bancaire (CIH Bank Maroc)',
+    'checkout.bankTransferInfo': 'Virement Bancaire (Toutes Banques Maroc)',
     'checkout.bankAccountHolder': 'Titulaire du Compte',
     'checkout.ribNumber': 'Numéro RIB',
     'checkout.transferMotif': 'Référence / Motif du Virement',
@@ -379,6 +385,9 @@ export const TRANSLATIONS = {
     'nav.language': 'اللغة',
     'nav.latency': '18 مللي ثانية (متصل)',
     'nav.adminCenter': 'لوحة تحكم الإدارة',
+    'nav.darkMode': 'الوضع الليلي',
+    'nav.lightMode': 'الوضع النهاري',
+    'nav.toggleMode': 'التبديل بين الوضع الليلي والنهاري',
 
     // Hero Section
     'hero.badge': 'تراخيص ومفاتيح رقمية رسمية ومضمونة',
@@ -388,10 +397,10 @@ export const TRANSLATIONS = {
       'مفاتيح ألعاب أصلية، تراخيص ويندوز وأوفيس معتمدة، اشتراكات الذكاء الاصطناعي وخدمات VPN تُسلّم فوراً في خزنتك الرقمية مع ضمان كامل.',
     'hero.feature1': 'مفاتيح ريتيل أصلية 100%',
     'hero.feature2': 'تسليم مباشر للخزنة الرقمية',
-    'hero.feature3': 'دعم بنك CIH والعملات المشفرة',
+    'hero.feature3': 'دعم التحويل البنكي والعملات المشفرة',
     'hero.exploreBtn': 'تصفح الكتالوج',
     'hero.openVaultBtn': 'فتح خزنتي الرقمية',
-    'hero.trustBadge': 'تحويل بنكي مغربي (CIH Bank) • كريبتو USDT • دعم فني مباشر وسريع',
+    'hero.trustBadge': 'تحويل بنكي مغربي (جميع الأبناك) • كريبتو USDT • دعم فني مباشر وسريع',
 
     // Category & Filter Bar
     'catalog.allProducts': 'جميع المنتجات',
@@ -460,7 +469,7 @@ export const TRANSLATIONS = {
     'checkout.discordLabel': 'معرف الديسكورد أو الواتساب (اختياري)',
     'checkout.discordPlaceholder': 'لتلقي الدعم الفني الفوري والمتابعة المباشرة',
     'checkout.paymentMethod': 'اختر وسيلة الدفع',
-    'checkout.bankTransferInfo': 'التحويل البنكي (CIH Bank المغرب)',
+    'checkout.bankTransferInfo': 'التحويل البنكي المباشر (الأبناك المغربية)',
     'checkout.bankAccountHolder': 'صاحب الحساب',
     'checkout.ribNumber': 'رقم الحساب (RIB)',
     'checkout.transferMotif': 'رمز / مرجع التحويل (Motif)',

@@ -103,8 +103,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={() => setSelectedProductDetails(product)}
-      className="group relative flex flex-col justify-between rounded-2xl bg-slate-900/80 border border-slate-800/90 hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/15 overflow-hidden cursor-pointer backdrop-blur-sm will-change-transform"
-      style={{ transformStyle: 'preserve-3d' }}
+      className="group relative flex flex-col justify-between overflow-hidden cursor-pointer backdrop-blur-sm will-change-transform transition-all duration-300 hover:shadow-2xl"
+      style={{
+        transformStyle: 'preserve-3d',
+        backgroundColor: 'var(--theme-card-bg, #111827)',
+        borderColor: 'var(--theme-border, #1f293d)',
+        borderWidth: '1px',
+        borderStyle: 'solid',
+        borderRadius: 'var(--theme-radius, 16px)'
+      }}
     >
       {/* Dynamic Cursor Light Glare / Specular Highlight */}
       <div
@@ -221,7 +228,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
             <button
               onClick={handleInstantBuy}
-              className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white text-xs font-bold shadow-md shadow-indigo-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+              style={{
+                background: 'var(--theme-gradient, linear-gradient(135deg, #6366f1 0%, #06b6d4 100%))',
+                boxShadow: '0 4px 14px -2px var(--theme-glow, rgba(99, 102, 241, 0.25))'
+              }}
+              className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-white text-xs font-bold hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5 fill-white" />
               <span>{t('product.buyNow')}</span>

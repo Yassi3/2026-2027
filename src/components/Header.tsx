@@ -12,7 +12,9 @@ import {
   Globe,
   X,
   SlidersHorizontal,
-  ChevronDown
+  ChevronDown,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 export const Header: React.FC = () => {
@@ -32,6 +34,8 @@ export const Header: React.FC = () => {
     isAdmin,
     setSelectedCategory,
     setSelectedPlatform,
+    colorMode,
+    toggleColorMode,
     t
   } = useStore();
 
@@ -133,6 +137,20 @@ export const Header: React.FC = () => {
             )}
           </div>
 
+          {/* Dark / Light Mode Switcher */}
+          <button
+            onClick={toggleColorMode}
+            className="flex items-center justify-center p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 transition-all cursor-pointer shadow-sm group"
+            title={colorMode === 'dark' ? t('nav.lightMode') : t('nav.darkMode')}
+            aria-label="Toggle Dark / Light Mode"
+          >
+            {colorMode === 'dark' ? (
+              <Sun className="w-4 h-4 text-amber-400 group-hover:rotate-45 transition-transform" />
+            ) : (
+              <Moon className="w-4 h-4 text-indigo-500 group-hover:-rotate-12 transition-transform" />
+            )}
+          </button>
+
           {/* Database & Cloud Status Button (Desktop only) */}
           <button
             onClick={() => setIsDbStatusOpen(true)}
@@ -155,7 +173,10 @@ export const Header: React.FC = () => {
             <KeyRound className="w-4 h-4 text-indigo-400 group-hover:rotate-12 transition-transform shrink-0" />
             <span className="hidden xl:inline">{t('nav.myVault')}</span>
             {vaultItems.length > 0 && (
-              <span className="flex items-center justify-center px-1.5 py-0.2 bg-gradient-to-r from-indigo-500 to-cyan-500 text-white text-[10px] font-bold rounded-full min-w-4.5">
+              <span
+                style={{ background: 'var(--theme-gradient, linear-gradient(135deg, #6366f1 0%, #06b6d4 100%))' }}
+                className="flex items-center justify-center px-1.5 py-0.2 text-white text-[10px] font-bold rounded-full min-w-4.5"
+              >
                 {vaultItems.length}
               </span>
             )}
@@ -185,13 +206,17 @@ export const Header: React.FC = () => {
           {/* Cart Drawer Trigger - Never overflows on any screen */}
           <button
             onClick={() => setIsCartOpen(true)}
-            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer relative shrink-0"
+            style={{
+              background: 'var(--theme-gradient, linear-gradient(135deg, #6366f1 0%, #06b6d4 100%))',
+              boxShadow: '0 4px 14px -2px var(--theme-glow, rgba(99, 102, 241, 0.35))'
+            }}
+            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-white font-bold text-xs hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer relative shrink-0"
             title={t('nav.cart')}
           >
             <ShoppingCart className="w-4 h-4 shrink-0" />
             <span className="hidden lg:inline">{t('nav.cart')}</span>
             {cartCount > 0 && (
-              <span className="flex items-center justify-center min-w-4.5 h-4.5 sm:min-w-5 sm:h-5 px-1 bg-white text-indigo-900 font-extrabold text-[10px] sm:text-[11px] rounded-full shadow-md animate-in zoom-in">
+              <span className="flex items-center justify-center min-w-4.5 h-4.5 sm:min-w-5 sm:h-5 px-1 bg-white text-slate-900 font-extrabold text-[10px] sm:text-[11px] rounded-full shadow-md animate-in zoom-in">
                 {cartCount}
               </span>
             )}
