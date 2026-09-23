@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { useStore } from '../context/StoreContext';
 import { BHSSLogo } from './BHSSLogo';
-import { LanguageSwitcher } from './LanguageSwitcher';
 import {
   Search,
   ShoppingCart,
@@ -9,10 +8,8 @@ import {
   User,
   Shield,
   Activity,
-  Globe,
   X,
   SlidersHorizontal,
-  ChevronDown,
   Sun,
   Moon
 } from 'lucide-react';
@@ -28,9 +25,6 @@ export const Header: React.FC = () => {
     setIsAccountOpen,
     setIsAdminOpen,
     setIsDbStatusOpen,
-    currentCurrency,
-    setCurrencyCode,
-    currencies,
     isAdmin,
     setSelectedCategory,
     setSelectedPlatform,
@@ -38,20 +32,6 @@ export const Header: React.FC = () => {
     toggleColorMode,
     t
   } = useStore();
-
-  const [isCurrencyMenuOpen, setIsCurrencyMenuOpen] = useState(false);
-  const currencyMenuRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown on click outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (currencyMenuRef.current && !currencyMenuRef.current.contains(e.target as Node)) {
-        setIsCurrencyMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const handleHomeClick = () => {
     setSelectedCategory('all');
@@ -93,50 +73,6 @@ export const Header: React.FC = () => {
 
         {/* Right Navigation & Action Controls */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Language Switcher */}
-          <LanguageSwitcher variant="compact" direction="down" />
-
-          {/* Currency Switcher */}
-          <div className="relative" ref={currencyMenuRef}>
-            <button
-              onClick={() => setIsCurrencyMenuOpen(!isCurrencyMenuOpen)}
-              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-white hover:border-slate-700 transition-all cursor-pointer shadow-sm"
-              title={t('nav.selectCurrency')}
-            >
-              <span className="text-sm select-none">{currentCurrency.flag}</span>
-              <span className="text-[11px] sm:text-xs font-mono font-bold">{currentCurrency.code}</span>
-              <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400" />
-            </button>
-
-            {isCurrencyMenuOpen && (
-              <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-38 bg-slate-900/95 border border-slate-800 rounded-xl shadow-2xl p-1.5 z-50 backdrop-blur-xl animate-in fade-in zoom-in-95 origin-top-right rtl:origin-top-left">
-                <div className="text-[10px] uppercase font-bold text-slate-500 px-2 py-1 tracking-wider">
-                  {t('nav.selectCurrency')}
-                </div>
-                {currencies.map((curr) => (
-                  <button
-                    key={curr.code}
-                    onClick={() => {
-                      setCurrencyCode(curr.code);
-                      setIsCurrencyMenuOpen(false);
-                    }}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                      currentCurrency.code === curr.code
-                        ? 'bg-indigo-600/30 text-indigo-300 font-semibold border border-indigo-500/30'
-                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <span>{curr.flag}</span>
-                      <span>{curr.code}</span>
-                    </span>
-                    <span className="text-slate-500 text-[11px] font-mono">{curr.symbol}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* Dark / Light Mode Switcher */}
           <button
             onClick={toggleColorMode}

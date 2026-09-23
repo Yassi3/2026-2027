@@ -32,7 +32,8 @@ import {
   Key,
   Landmark,
   Clock,
-  Palette
+  Palette,
+  XCircle
 } from 'lucide-react';
 import { BHSSLogo } from './BHSSLogo';
 
@@ -47,6 +48,7 @@ export const AdminDashboard: React.FC = () => {
     deleteProduct,
     orders,
     approveOrderAndDispatchKeys,
+    rejectOrder,
     allVaultItems,
     formatPrice,
     settings,
@@ -60,6 +62,7 @@ export const AdminDashboard: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [itemToDeleteId, setItemToDeleteId] = useState<string | null>(null);
   const [searchProduct, setSearchProduct] = useState('');
+  const [rejectConfirmOrderId, setRejectConfirmOrderId] = useState<string | null>(null);
 
   // Protect Admin Dashboard: Only authenticated users with admin role can access
   if (!isAdminOpen || !isAdmin || currentUser?.role !== 'admin') {
@@ -422,18 +425,54 @@ export const AdminDashboard: React.FC = () => {
 
                       {/* Delivered Key preview or Pending notice */}
                       {ord.status === 'pending' ? (
-                        <div className="flex items-center justify-between p-2.5 rounded-xl bg-amber-950/25 border border-amber-500/30 text-xs">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl bg-amber-950/25 border border-amber-500/30 text-xs">
                           <span className="text-amber-300 font-semibold flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>Paiement en attente de vérification ({ord.paymentMethod} - {ord.bankTransferRef || ord.paymentTxId || 'Sans réf'})</span>
+                            <Clock className="w-3.5 h-3.5 shrink-0" />
+                            <span>Paiement en attente ({ord.paymentMethod} - {ord.bankTransferRef || ord.paymentTxId || 'Sans réf'})</span>
                           </span>
-                          <button
-                            onClick={() => approveOrderAndDispatchKeys(ord.id)}
-                            className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/20 transition cursor-pointer flex items-center gap-1"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>تأكيد استلام المبلغ وإرسال المفاتيح</span>
-                          </button>
+
+                          <div className="flex items-center gap-2">
+                            {rejectConfirmOrderId === ord.id ? (
+                              <div className="flex items-center gap-1.5 p-1 rounded-lg bg-rose-950/80 border border-rose-500/60 animate-in fade-in">
+                                <span className="text-[11px] text-rose-200 font-bold px-1">رفض الدفع؟</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    rejectOrder(ord.id);
+                                    setRejectConfirmOrderId(null);
+                                  }}
+                                  className="px-2.5 py-1 rounded bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-black transition cursor-pointer"
+                                >
+                                  نعم، رفض
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setRejectConfirmOrderId(null)}
+                                  className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold transition cursor-pointer"
+                                >
+                                  إلغاء
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setRejectConfirmOrderId(ord.id)}
+                                className="px-3 py-1.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-500/40 text-xs font-bold transition cursor-pointer flex items-center gap-1"
+                              >
+                                <XCircle className="w-3.5 h-3.5 text-rose-400" />
+                                <span>رفض الدفع</span>
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => approveOrderAndDispatchKeys(ord.id)}
+                              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/20 transition cursor-pointer flex items-center gap-1"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>تأكيد استلام المبلغ</span>
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <div className="p-2.5 rounded-xl bg-slate-900 text-[11px] font-mono text-cyan-300 flex items-center justify-between">

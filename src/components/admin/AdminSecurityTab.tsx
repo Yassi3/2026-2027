@@ -48,6 +48,7 @@ export const AdminSecurityTab: React.FC = () => {
 
   // Visible passkeys map for the list
   const [revealedKeys, setRevealedKeys] = useState<{ [id: string]: boolean }>({});
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const toggleReveal = (id: string) => {
     setRevealedKeys((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -385,18 +386,36 @@ export const AdminSecurityTab: React.FC = () => {
                 </div>
 
                 {!isOwner && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (confirm(`هل أنت متأكد من رغبتك في حذف المشرف "${acc.name}"؟`)) {
-                        deleteAdminAccount(acc.id);
-                      }
-                    }}
-                    className="p-2 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 transition cursor-pointer shrink-0"
-                    title="حذف هذا المشرف"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  deleteConfirmId === acc.id ? (
+                    <div className="flex items-center gap-1.5 p-1 rounded-lg bg-rose-950/80 border border-rose-500/60 animate-in fade-in">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          deleteAdminAccount(acc.id);
+                          setDeleteConfirmId(null);
+                        }}
+                        className="px-2 py-1 rounded bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-bold cursor-pointer"
+                      >
+                        حذف
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirmId(null)}
+                        className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] cursor-pointer"
+                      >
+                        إلغاء
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setDeleteConfirmId(acc.id)}
+                      className="p-2 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 transition cursor-pointer shrink-0"
+                      title="حذف هذا المشرف"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )
                 )}
               </div>
             );

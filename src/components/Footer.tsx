@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BHSSLogo } from './BHSSLogo';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { CurrencySwitcher } from './CurrencySwitcher';
 import { useStore } from '../context/StoreContext';
 import { LegalModal, LegalTabType } from './LegalModal';
 import {
@@ -239,11 +240,12 @@ export const Footer: React.FC = () => {
             <LanguageSwitcher direction="up" showLabel={true} />
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <span>{t('nav.selectCurrency')}:</span>
-            <span className="font-mono text-slate-200 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg">
-              {currentCurrency.flag} {currentCurrency.code} ({currentCurrency.symbol})
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <Coins className="w-4 h-4 text-amber-400" />
+              <span>{t('nav.selectCurrency')}:</span>
             </span>
+            <CurrencySwitcher direction="up" showLabel={true} />
           </div>
         </div>
 

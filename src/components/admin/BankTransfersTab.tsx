@@ -54,6 +54,7 @@ export const BankTransfersTab: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [editingBankConfig, setEditingBankConfig] = useState(false);
+  const [rejectConfirmOrderId, setRejectConfirmOrderId] = useState<string | null>(null);
 
   // Bank Form State for adding/editing banks
   const [isAddingBank, setIsAddingBank] = useState(false);
@@ -788,16 +789,39 @@ export const BankTransfersTab: React.FC = () => {
                       هل تأكدت من وصول مبلغ <strong className="text-emerald-400">{formatPrice(order.total)} ({totalInMad} MAD)</strong> في حسابك / محفظتك ({order.paymentMethod})؟
                     </span>
 
-                    <button
-                      onClick={() => {
-                        if (confirm(`هل أنت متأكد من رغبتك في إلغاء الطلبية ${order.orderNumber} وإرجاع المخزون؟`)) {
-                          rejectOrder(order.id);
-                        }
-                      }}
-                      className="w-full sm:w-auto px-4 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 border border-rose-500/30 text-xs font-bold transition cursor-pointer"
-                    >
-                      رفض الطلب (Rejeter)
-                    </button>
+                    {rejectConfirmOrderId === order.id ? (
+                      <div className="flex items-center gap-2 p-1.5 rounded-xl bg-rose-950/80 border border-rose-500/60 animate-in fade-in">
+                        <span className="text-xs text-rose-200 font-bold px-1.5">
+                          تأكيد رفض الدفع والطلب؟
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            rejectOrder(order.id);
+                            setRejectConfirmOrderId(null);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-black shadow transition cursor-pointer"
+                        >
+                          نعم، رفض الآن
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRejectConfirmOrderId(null)}
+                          className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition cursor-pointer"
+                        >
+                          إلغاء
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setRejectConfirmOrderId(order.id)}
+                        className="w-full sm:w-auto px-4 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-500/40 text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        <XCircle className="w-3.5 h-3.5 text-rose-400" />
+                        <span>رفض الدفع (Rejeter)</span>
+                      </button>
+                    )}
 
                     <button
                       onClick={() => approveOrderAndDispatchKeys(order.id)}

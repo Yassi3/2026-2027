@@ -27,6 +27,7 @@ export const BHSSLogo: React.FC<LogoProps> = ({
   }[size];
 
   const customLogo = settings?.customLogoUrl;
+  const isLight = settings?.colorMode === 'light';
 
   return (
     <div className={`flex items-center gap-2 sm:gap-3 cursor-pointer select-none group shrink-0 ${className}`}>
@@ -128,17 +129,31 @@ export const BHSSLogo: React.FC<LogoProps> = ({
       {/* Brand Text */}
       <div className="flex flex-col leading-none">
         <div className={`font-black tracking-tight ${titleSizes} flex items-center gap-1.5`}>
-          <span className="bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent font-extrabold tracking-wider">
+          <span
+            className={`font-extrabold tracking-wider ${
+              isLight
+                ? 'text-slate-900 drop-shadow-none'
+                : 'bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent'
+            }`}
+          >
             {settings?.storeName ? settings.storeName.split(' ')[0] : 'BHSS'}
           </span>
-          <span className="bg-gradient-to-r from-cyan-400 via-indigo-400 to-fuchsia-400 bg-clip-text text-transparent font-black tracking-normal">
+          <span
+            className={`font-black tracking-normal ${
+              isLight
+                ? 'bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent'
+                : 'bg-gradient-to-r from-cyan-400 via-indigo-400 to-fuchsia-400 bg-clip-text text-transparent'
+            }`}
+          >
             {settings?.storeName ? settings.storeName.split(' ').slice(1).join(' ') || 'SHOP' : 'SHOP'}
           </span>
           <span className="inline-block w-2 h-2 rounded-full bg-cyan-400 animate-pulse ml-0.5 shadow-sm shadow-cyan-400" />
         </div>
 
         {showSubtitle && (
-          <span className="hidden lg:inline-block text-[10px] font-semibold tracking-widest text-slate-400 uppercase mt-0.5">
+          <span className={`hidden lg:inline-block text-[10px] font-semibold tracking-widest uppercase mt-0.5 ${
+            isLight ? 'text-slate-500' : 'text-slate-400'
+          }`}>
             Instant Digital Goods
           </span>
         )}

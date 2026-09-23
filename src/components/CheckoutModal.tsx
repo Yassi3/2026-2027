@@ -52,8 +52,6 @@ export const CheckoutModal: React.FC = () => {
   const [copiedRib, setCopiedRib] = useState(false);
   const [copiedBinanceId, setCopiedBinanceId] = useState(false);
 
-  if (!isCheckoutOpen) return null;
-
   const selectedGateway =
     paymentGateways.find((g) => g.id === selectedGatewayId) ||
     paymentGateways.find((g) => g.enabled) ||
@@ -87,6 +85,8 @@ export const CheckoutModal: React.FC = () => {
     const defaultOne = moroccanBankAccounts.find((b) => b.isDefault);
     return defaultOne || moroccanBankAccounts[0];
   }, [moroccanBankAccounts, selectedBankId]);
+
+  if (!isCheckoutOpen) return null;
 
   const handleCopy = (text: string, type: 'address' | 'rib' | 'binance') => {
     navigator.clipboard.writeText(text);

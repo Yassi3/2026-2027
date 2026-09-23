@@ -132,6 +132,12 @@ html.light [class*="divide-slate-800"] > * {
 }
 
 /* Typography Contrast in Light Mode */
+html.light .logo-brand-primary {
+  color: #0f172a !important;
+  background: none !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
 html.light h1:not([class*="text-transparent"]),
 html.light h2:not([class*="text-transparent"]),
 html.light h3:not([class*="text-transparent"]),
@@ -145,23 +151,23 @@ html.light .text-white:not([class*="bg-indigo-6"]):not([class*="bg-emerald-6"]):
   color: #0f172a !important;
 }
 
-html.light [class*="text-slate-100"] {
+html.light [class*="text-slate-100"]:not([class*="bg-indigo-"] *):not([class*="bg-violet-"] *):not([class*="bg-gradient-"] *) {
   color: #0f172a !important;
 }
 
-html.light [class*="text-slate-200"] {
+html.light [class*="text-slate-200"]:not([class*="bg-indigo-"] *):not([class*="bg-violet-"] *):not([class*="bg-gradient-"] *) {
   color: #1e293b !important;
 }
 
-html.light [class*="text-slate-300"] {
+html.light [class*="text-slate-300"]:not([class*="bg-indigo-"] *):not([class*="bg-violet-"] *):not([class*="bg-gradient-"] *) {
   color: #334155 !important;
 }
 
-html.light [class*="text-slate-400"] {
+html.light [class*="text-slate-400"]:not([class*="bg-indigo-"] *):not([class*="bg-violet-"] *):not([class*="bg-gradient-"] *) {
   color: #64748b !important;
 }
 
-html.light [class*="text-slate-500"] {
+html.light [class*="text-slate-500"]:not([class*="bg-indigo-"] *):not([class*="bg-violet-"] *):not([class*="bg-gradient-"] *) {
   color: #64748b !important;
 }
 
