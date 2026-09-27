@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#1e1b4b" />
+      <stop offset="100%" stop-color="#090d16" />
+    </linearGradient>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#818cf8" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background rounded rect -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  
+  <!-- Subtle border -->
+  <rect x="6" y="6" width="500" height="500" rx="106" fill="none" stroke="url(#primaryGrad)" stroke-width="6" opacity="0.6" />
+
+  <!-- Outer glowing shield / diamond icon -->
+  <g filter="url(#glow)">
+    <path d="M256 68 L410 136 C410 274 344 380 256 444 C168 380 102 274 102 136 Z" 
+          fill="url(#primaryGrad)" opacity="0.25" />
+    <path d="M256 84 L394 146 C394 266 336 364 256 422 C176 364 118 266 118 146 Z" 
+          fill="none" stroke="url(#accentGrad)" stroke-width="8" stroke-linejoin="round" />
+  </g>
+
+  <!-- Central monogram "BHS" and Game Key / Vault Star -->
+  <!-- Monogram B -->
+  <path d="M190 190 h60 c24 0 40 12 40 30 c0 12 -7 22 -18 26 c16 4 24 16 24 32 c0 22 -18 36 -46 36 h-60 z m28 22 v30 h30 c12 0 18 -6 18 -15 c0 -9 -6 -15 -18 -15 z m0 48 v34 h34 c14 0 20 -7 20 -17 c0 -10 -6 -17 -20 -17 z" 
+        fill="#ffffff" />
+        
+  <!-- Digital Bolt / Key spark -->
+  <path d="M330 190 l-24 50 h36 l-32 72 l60 -64 h-36 l24 -58 z" 
+        fill="url(#primaryGrad)" filter="url(#glow)" />
+
+  <!-- Live Pulse Dot -->
+  <circle cx="256" cy="386" r="10" fill="#10b981" />
+  <circle cx="256" cy="386" r="18" fill="none" stroke="#10b981" stroke-width="3" opacity="0.6" />
+</svg>

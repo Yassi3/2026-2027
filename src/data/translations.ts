@@ -49,10 +49,10 @@ export const TRANSLATIONS = {
       'Genuine retail game keys, Windows & Office licenses, AI subscriptions, and premium VPNs delivered directly to your personal Digital Vault with instant warranty.',
     'hero.feature1': '100% Genuine Retail Keys',
     'hero.feature2': 'Direct Delivery to Vault',
-    'hero.feature3': 'Bank Transfer & Crypto Support',
+    'hero.feature3': 'Moroccan Bank Transfer Support',
     'hero.exploreBtn': 'Explore Catalog',
     'hero.openVaultBtn': 'Open My Vault',
-    'hero.trustBadge': 'Moroccan Bank Transfer • Crypto USDT • Fast 24/7 Human Support',
+    'hero.trustBadge': 'Moroccan Bank Transfer (CIH, Attijari, BCP) • Fast 24/7 Human Support',
 
     // Category & Filter Bar
     'catalog.allProducts': 'All Products',
@@ -223,10 +223,10 @@ export const TRANSLATIONS = {
       'Clés de jeux authentiques, licences Windows & Office certifiées, abonnements IA et VPNs premium délivrés directement dans votre Digital Vault personnel avec garantie.',
     'hero.feature1': '100% Clés Retail Authentiques',
     'hero.feature2': 'Livraison Directe dans le Vault',
-    'hero.feature3': 'Support Virement Bancaire & Cryptos',
+    'hero.feature3': 'Support Virement Bancaire Marocain',
     'hero.exploreBtn': 'Explorer le Catalogue',
     'hero.openVaultBtn': 'Ouvrir Mon Vault',
-    'hero.trustBadge': 'Virement Bancaire Maroc • Crypto USDT • Support Humain Réactif 24/7',
+    'hero.trustBadge': 'Virement Bancaire Maroc (CIH, Attijari, BCP) • Support Humain Réactif 24/7',
 
     // Category & Filter Bar
     'catalog.allProducts': 'Tous les Produits',
@@ -397,10 +397,10 @@ export const TRANSLATIONS = {
       'مفاتيح ألعاب أصلية، تراخيص ويندوز وأوفيس معتمدة، اشتراكات الذكاء الاصطناعي وخدمات VPN تُسلّم فوراً في خزنتك الرقمية مع ضمان كامل.',
     'hero.feature1': 'مفاتيح ريتيل أصلية 100%',
     'hero.feature2': 'تسليم مباشر للخزنة الرقمية',
-    'hero.feature3': 'دعم التحويل البنكي والعملات المشفرة',
+    'hero.feature3': 'دعم التحويل البنكي المغربي المباشر',
     'hero.exploreBtn': 'تصفح الكتالوج',
     'hero.openVaultBtn': 'فتح خزنتي الرقمية',
-    'hero.trustBadge': 'تحويل بنكي مغربي (جميع الأبناك) • كريبتو USDT • دعم فني مباشر وسريع',
+    'hero.trustBadge': 'تحويل بنكي مغربي (CIH، التجاري، الشعبي) • دعم فني مباشر وسريع',
 
     // Category & Filter Bar
     'catalog.allProducts': 'جميع المنتجات',

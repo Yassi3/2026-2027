@@ -14,6 +14,7 @@ import {
 
 export const CategoryNav: React.FC = () => {
   const {
+    products,
     categories,
     selectedCategory,
     setSelectedCategory,
@@ -30,6 +31,12 @@ export const CategoryNav: React.FC = () => {
     if (cat.id === 'all') return t('catalog.allProducts');
     if (currentLanguage === 'ar') {
       const arMap: Record<string, string> = {
+        'gaming': 'ألعاب ومفاتيح ستيم',
+        'software': 'أنظمة التشغيل والبرامج',
+        'streaming': 'الاشتراكات والترفيه',
+        'vpn': 'شبكات VPN والحماية',
+        'ai-dev': 'الذكاء الاصطناعي والمطورين',
+        'giftcards': 'بطاقات الهدايا والشحن',
         'operating-systems': 'أنظمة التشغيل',
         'antivirus-security': 'الحماية ومكافحة الفيروسات',
         'gaming-keys': 'ألعاب ومفاتيح ستيم',
@@ -44,6 +51,12 @@ export const CategoryNav: React.FC = () => {
     }
     if (currentLanguage === 'fr') {
       const frMap: Record<string, string> = {
+        'gaming': 'Jeux & Clés Steam',
+        'software': 'Systèmes & Logiciels',
+        'streaming': 'Streaming & Abonnements',
+        'vpn': 'VPN & Sécurité',
+        'ai-dev': 'IA & Outils Dev',
+        'giftcards': 'Cartes Cadeaux',
         'operating-systems': "Systèmes d'Exploitation",
         'antivirus-security': 'Antivirus & Sécurité',
         'gaming-keys': 'Jeux & Clés Steam',
@@ -57,6 +70,11 @@ export const CategoryNav: React.FC = () => {
       return frMap[cat.id] || cat.name;
     }
     return cat.name;
+  };
+
+  const getCategoryCount = (catId: string) => {
+    if (catId === 'all') return products.length;
+    return products.filter((p) => p.category === catId).length;
   };
 
   const getCategoryIcon = (iconName: string) => {
@@ -120,6 +138,17 @@ export const CategoryNav: React.FC = () => {
                 {getCategoryIcon(category.icon)}
               </span>
               <span>{getCategoryName(category)}</span>
+              {products.length > 0 && (
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                    isSelected
+                      ? 'bg-white/20 text-white font-bold'
+                      : 'bg-slate-800 text-slate-400'
+                  }`}
+                >
+                  {getCategoryCount(category.id)}
+                </span>
+              )}
             </button>
           );
         })}

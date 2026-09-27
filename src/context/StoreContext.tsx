@@ -12,7 +12,8 @@ import {
   AdminAccount,
   Language,
   LanguageCode,
-  ColorMode
+  ColorMode,
+  NewsletterSubscriber
 } from '../types';
 import {
   INITIAL_PRODUCTS,
@@ -153,9 +154,15 @@ interface StoreContextType {
   addProduct: (product: Omit<Product, 'id'>) => Product;
   updateProduct: (id: string, updates: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
+  clearAllProducts: () => void;
   addCategory: (category: Omit<Category, 'id'>) => void;
   deleteCategory: (id: string) => void;
   resetToDefaults: () => void;
+
+  // Marketing & Newsletter
+  newsletterSubscribers: NewsletterSubscriber[];
+  subscribeNewsletter: (email: string) => { success: boolean; promoCode?: string; message: string };
+  exportSubscribers: () => void;
 
   // Notifications
   toasts: ToastData[];
@@ -169,23 +176,36 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Load initial products from localStorage or defaults
   const [products, setProducts] = useState<Product[]>(() => {
     try {
+      // Clear legacy demo mock products as requested by the user
+      const wipedFlag = localStorage.getItem('bhsshop_products_wiped_v2');
+      if (!wipedFlag) {
+        localStorage.setItem('bhsshop_products_wiped_v2', 'true');
+        localStorage.setItem('bhsshop_products', JSON.stringify([]));
+        return [];
+      }
+
       const saved = localStorage.getItem('bhsshop_products');
-      if (saved) {
+      if (saved !== null) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const existingIds = new Set(parsed.map((p: Product) => p.id));
-          const missing = INITIAL_PRODUCTS.filter((p) => !existingIds.has(p.id));
-          if (missing.length > 0) {
-            const merged = [...parsed, ...missing];
-            localStorage.setItem('bhsshop_products', JSON.stringify(merged));
-            return merged;
-          }
-          return parsed;
+        if (Array.isArray(parsed)) {
+          // Filter out any legacy hardcoded demo IDs
+          const legacyIds = new Set([
+            'prod-win11-pro', 'prod-office-2024', 'prod-cyberpunk-dlc',
+            'prod-elden-ring-shadow', 'prod-xbox-gamepass', 'prod-gta-v-premium',
+            'prod-adobe-cc-1y', 'prod-jetbrains-all', 'prod-chatgpt-plus',
+            'prod-github-copilot', 'prod-nordvpn-2y', 'prod-expressvpn-1y',
+            'prod-spotify-family', 'prod-youtube-premium', 'prod-steam-giftcard-50',
+            'prod-apple-giftcard-50', 'prod-canva-pro-1y', 'prod-psn-card-50',
+            'prod-discord-nitro-3m', 'prod-adobe-cc-all', 'prod-kaspersky-total',
+            'prod-gta-v-megalodon', 'prod-crunchyroll-1y', 'prod-ai-chatgpt-pro',
+            'prod-roblox-2000-robux', 'prod-elden-ring-erdtree'
+          ]);
+          return parsed.filter((p: Product) => !legacyIds.has(p.id));
         }
       }
-      return INITIAL_PRODUCTS;
+      return [];
     } catch {
-      return INITIAL_PRODUCTS;
+      return [];
     }
   });
 
@@ -402,6 +422,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (Array.isArray(parsed) && parsed.length > 0) {
           const defaultMb = INITIAL_PAYMENT_GATEWAYS.find((g) => g.id === 'moroccan_bank');
           return parsed.map((gw) => {
+            if (gw.id === 'crypto_usdt' || gw.type === 'crypto') {
+              return {
+                ...gw,
+                enabled: false
+              };
+            }
             if (gw.type === 'moroccan_bank' || gw.id === 'moroccan_bank') {
               const hasBankAccounts = Array.isArray(gw.bankAccounts) && gw.bankAccounts.length > 0;
               const isOldFixedName = gw.name === 'CIH Bank / Virement Maroc (MAD)';
@@ -1253,7 +1279,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       ...newProduct,
       id: `prod-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`
     };
-    setProducts((prev) => [created, ...prev]);
+    setProducts((prev) => {
+      const updated = [created, ...prev];
+      try {
+        localStorage.setItem('bhsshop_products', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Failed to save products:', e);
+      }
+      return updated;
+    });
     showToast(`Product "${created.title}" published!`, 'success');
     return created;
   };
@@ -1263,9 +1297,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       showToast('Unauthorized: Admin role required to update products', 'error');
       return;
     }
-    setProducts((prev) =>
-      prev.map((prod) => (prod.id === id ? { ...prod, ...updates } : prod))
-    );
+    setProducts((prev) => {
+      const updated = prev.map((prod) => (prod.id === id ? { ...prod, ...updates } : prod));
+      try {
+        localStorage.setItem('bhsshop_products', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Failed to save products:', e);
+      }
+      return updated;
+    });
     showToast('Product updated successfully', 'success');
   };
 
@@ -1274,8 +1314,30 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       showToast('Unauthorized: Admin role required to delete products', 'error');
       return;
     }
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+    setProducts((prev) => {
+      const updated = prev.filter((p) => p.id !== id);
+      try {
+        localStorage.setItem('bhsshop_products', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Failed to save products:', e);
+      }
+      return updated;
+    });
     showToast('Product deleted from store', 'info');
+  };
+
+  const clearAllProducts = () => {
+    if (!isAdmin) {
+      showToast('Unauthorized: Admin role required to clear products', 'error');
+      return;
+    }
+    setProducts([]);
+    try {
+      localStorage.setItem('bhsshop_products', JSON.stringify([]));
+    } catch (e) {
+      console.warn('Failed to clear products:', e);
+    }
+    showToast('All products deleted / تم حذف جميع المنتجات', 'info');
   };
 
   const addCategory = (cat: Omit<Category, 'id'>) => {
@@ -1301,11 +1363,82 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const resetToDefaults = () => {
-    setProducts(INITIAL_PRODUCTS);
+    setProducts([]);
     setCategories(INITIAL_CATEGORIES);
     setSettings(INITIAL_SETTINGS);
     setPaymentGateways(INITIAL_PAYMENT_GATEWAYS);
-    showToast('Store restored to default catalog state', 'info');
+    try {
+      localStorage.setItem('bhsshop_products', JSON.stringify([]));
+    } catch (e) {
+      console.warn('Failed to save products:', e);
+    }
+    showToast('Store catalog cleared', 'info');
+  };
+
+  // Marketing & Newsletter Subscribers
+  const [newsletterSubscribers, setNewsletterSubscribers] = useState<NewsletterSubscriber[]>(() => {
+    try {
+      const saved = localStorage.getItem('bhsshop_newsletter_subscribers');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('bhsshop_newsletter_subscribers', JSON.stringify(newsletterSubscribers));
+    } catch (e) {
+      console.warn('Failed to save newsletter subscribers:', e);
+    }
+  }, [newsletterSubscribers]);
+
+  const subscribeNewsletter = (emailInput: string) => {
+    const clean = emailInput.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!clean || !emailRegex.test(clean)) {
+      showToast('Please enter a valid email address.', 'error');
+      return { success: false, message: 'Invalid email address' };
+    }
+
+    const alreadyExists = newsletterSubscribers.some((s) => s.email === clean);
+    if (alreadyExists) {
+      showToast('You are already subscribed! Your VIP promo code is "BHS10".', 'info');
+      return { success: true, promoCode: 'BHS10', message: 'Already subscribed' };
+    }
+
+    const newSub: NewsletterSubscriber = {
+      id: `sub-${Date.now()}`,
+      email: clean,
+      subscribedAt: new Date().toISOString()
+    };
+
+    setNewsletterSubscribers((prev) => [newSub, ...prev]);
+    showToast('Subscribed! VIP promo code "BHS10" (10% OFF) unlocked!', 'success');
+    return { success: true, promoCode: 'BHS10', message: 'Subscribed successfully' };
+  };
+
+  const exportSubscribers = () => {
+    if (newsletterSubscribers.length === 0) {
+      showToast('No newsletter subscribers to export yet.', 'info');
+      return;
+    }
+    const csvContent =
+      'data:text/csv;charset=utf-8,' +
+      'Email,SubscribedAt\n' +
+      newsletterSubscribers.map((s) => `"${s.email}","${s.subscribedAt}"`).join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `bhsshop_subscribers_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast(`Exported ${newsletterSubscribers.length} subscriber emails!`, 'success');
   };
 
   return (
@@ -1407,9 +1540,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addProduct,
         updateProduct,
         deleteProduct,
+        clearAllProducts,
         addCategory,
         deleteCategory,
         resetToDefaults,
+
+        newsletterSubscribers,
+        subscribeNewsletter,
+        exportSubscribers,
 
         toasts,
         showToast,

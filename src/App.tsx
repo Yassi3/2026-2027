@@ -14,6 +14,8 @@ import { UserAccountModal } from './components/UserAccountModal';
 import { DatabaseStatusModal } from './components/DatabaseStatusModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { AdminLoginModal } from './components/AdminLoginModal';
+import { AdminTopBar } from './components/AdminTopBar';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import { MobileNavBar } from './components/MobileNavBar';
 import { Footer } from './components/Footer';
 import { ToastContainer } from './components/Toast';
@@ -33,12 +35,15 @@ import {
 
 const StoreContent: React.FC = () => {
   const {
+    products,
     filteredProducts,
     searchQuery,
     selectedCategory,
     setSelectedCategory,
     setSelectedPlatform,
     isAdmin,
+    setIsAdminOpen,
+    setIsAdminLoginOpen,
     dir,
     t,
     currentLanguage
@@ -49,12 +54,27 @@ const StoreContent: React.FC = () => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
   };
 
+  const getFaqQ = (faq: any) => {
+    if (currentLanguage === 'ar' && faq.q_ar) return faq.q_ar;
+    if (currentLanguage === 'fr' && faq.q_fr) return faq.q_fr;
+    return faq.q;
+  };
+
+  const getFaqA = (faq: any) => {
+    if (currentLanguage === 'ar' && faq.a_ar) return faq.a_ar;
+    if (currentLanguage === 'fr' && faq.a_fr) return faq.a_fr;
+    return faq.a;
+  };
+
   return (
     <div
       dir={dir}
       style={{ backgroundColor: 'var(--theme-bg, #090d16)', color: 'var(--theme-text, #f1f5f9)' }}
       className="min-h-screen flex flex-col font-sans relative w-full overflow-x-hidden transition-colors duration-300"
     >
+      {/* Top Admin Quick Bar (when logged in as admin) */}
+      <AdminTopBar />
+
       {/* Top Banner */}
       <MaintenanceBanner />
 
@@ -72,23 +92,48 @@ const StoreContent: React.FC = () => {
 
           {/* Product Grid */}
           {filteredProducts.length === 0 ? (
-            <div className="text-center py-24 space-y-4 rounded-3xl bg-slate-900/40 border border-slate-800">
+            <div className="text-center py-20 px-4 space-y-4 rounded-3xl bg-slate-900/40 border border-slate-800">
               <div className="w-16 h-16 mx-auto rounded-2xl bg-slate-800 flex items-center justify-center text-slate-500">
                 <SearchX className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-bold text-white">{t('catalog.noProducts')}</h3>
+              <h3 className="text-lg font-bold text-white">
+                {products.length === 0
+                  ? (currentLanguage === 'ar' ? 'المتجر جاهز لإضافة منتجاتك' : 'Le magasin est prêt pour vos produits')
+                  : t('catalog.noProducts')}
+              </h3>
               <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                {t('catalog.noProductsDesc')}
+                {products.length === 0
+                  ? (currentLanguage === 'ar'
+                      ? 'يمكنك إضافة منتجاتك الخاصة وتحديد أسعارها وصورها والبدء في البيع فوراً.'
+                      : 'Ajoutez vos produits avec images, prix et commencez vos ventes dès maintenant.')
+                  : t('catalog.noProductsDesc')}
               </p>
-              <button
-                onClick={() => {
-                  setSelectedCategory('all');
-                  setSelectedPlatform('all');
-                }}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition cursor-pointer"
-              >
-                {t('catalog.resetFilters')}
-              </button>
+              {products.length === 0 ? (
+                <button
+                  onClick={() => {
+                    if (isAdmin) {
+                      setIsAdminOpen(true);
+                    } else {
+                      setIsAdminLoginOpen(true);
+                    }
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition cursor-pointer shadow-lg shadow-indigo-600/20"
+                >
+                  {isAdmin
+                    ? (currentLanguage === 'ar' ? '+ إضافة منتج جديد (Add Product)' : '+ Ajouter un produit')
+                    : (currentLanguage === 'ar' ? 'دخول لوحة التحكم لإضافة المنتجات (Admin Login)' : 'Connexion Admin')}
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setSelectedCategory('all');
+                    setSelectedPlatform('all');
+                  }}
+                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition cursor-pointer"
+                >
+                  {t('catalog.resetFilters')}
+                </button>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
@@ -99,51 +144,8 @@ const StoreContent: React.FC = () => {
           )}
         </div>
 
-        {/* Global Store Stats Bar */}
-        <section className="mt-16 py-12 bg-slate-900/40 border-y border-slate-800/80">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-              <div className="space-y-1">
-                <div className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-indigo-300 via-cyan-300 to-white bg-clip-text text-transparent font-mono">
-                  125,000+
-                </div>
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  {t('stats.keysDelivered')}
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <div className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-indigo-300 via-cyan-300 to-white bg-clip-text text-transparent font-mono">
-                  99.8%
-                </div>
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  {t('stats.satisfaction')}
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <div className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-indigo-300 via-cyan-300 to-white bg-clip-text text-transparent font-mono">
-                  &lt; 5s
-                </div>
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  {t('stats.avgDelivery')}
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <div className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-indigo-300 via-cyan-300 to-white bg-clip-text text-transparent font-mono">
-                  100%
-                </div>
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  {t('stats.genuineGuaranteed')}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* FAQ & Buyer Protection Accordion */}
-        <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 space-y-8">
+        <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-20 space-y-8">
           <div className="text-center space-y-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-bold border border-indigo-500/20">
               <HelpCircle className="w-3.5 h-3.5" />
@@ -169,7 +171,7 @@ const StoreContent: React.FC = () => {
                     onClick={() => toggleFaq(index)}
                     className="w-full p-4 sm:p-5 flex items-center justify-between text-left rtl:text-right text-xs sm:text-sm font-bold text-white hover:text-cyan-300 transition-colors cursor-pointer"
                   >
-                    <span>{faq.q}</span>
+                    <span>{getFaqQ(faq)}</span>
                     <ChevronDown
                       className={`w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ml-2 rtl:ml-0 rtl:mr-2 ${
                         isOpen ? 'rotate-180 text-cyan-400' : ''
@@ -179,7 +181,7 @@ const StoreContent: React.FC = () => {
 
                   {isOpen && (
                     <div className="px-4 pb-5 sm:px-5 text-xs text-slate-300 leading-relaxed border-t border-slate-800/60 pt-3">
-                      {faq.a}
+                      {getFaqA(faq)}
                     </div>
                   )}
                 </div>
@@ -205,6 +207,9 @@ const StoreContent: React.FC = () => {
       <DatabaseStatusModal />
       <AdminLoginModal />
       {isAdmin && <AdminDashboard />}
+
+      {/* Offline Mode Indicator */}
+      <OfflineIndicator />
 
       {/* Global Toast Alert Layer */}
       <ToastContainer />

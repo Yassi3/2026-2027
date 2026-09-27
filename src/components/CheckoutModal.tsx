@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
 import { BankAccount } from '../types';
 import {
@@ -40,7 +40,7 @@ export const CheckoutModal: React.FC = () => {
 
   const [email, setEmail] = useState('');
   const [discord, setDiscord] = useState('');
-  const [selectedGatewayId, setSelectedGatewayId] = useState('crypto_usdt');
+  const [selectedGatewayId, setSelectedGatewayId] = useState('moroccan_bank');
   const [selectedBankId, setSelectedBankId] = useState('');
   const [txHash, setTxHash] = useState('');
   const [cardNumber, setCardNumber] = useState('4242 •••• •••• 4242');
@@ -51,6 +51,17 @@ export const CheckoutModal: React.FC = () => {
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [copiedRib, setCopiedRib] = useState(false);
   const [copiedBinanceId, setCopiedBinanceId] = useState(false);
+
+  // Automatically select first enabled gateway (preferring Moroccan Bank)
+  useEffect(() => {
+    const enabledGateways = paymentGateways.filter((g) => g.enabled);
+    if (enabledGateways.length === 0) return;
+    const isCurrentEnabled = enabledGateways.some((g) => g.id === selectedGatewayId);
+    if (!isCurrentEnabled) {
+      const moroccan = enabledGateways.find((g) => g.id === 'moroccan_bank');
+      setSelectedGatewayId(moroccan ? moroccan.id : enabledGateways[0].id);
+    }
+  }, [paymentGateways, selectedGatewayId]);
 
   const selectedGateway =
     paymentGateways.find((g) => g.id === selectedGatewayId) ||

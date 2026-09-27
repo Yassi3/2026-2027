@@ -70,6 +70,10 @@ export const ProductDetailsModal: React.FC = () => {
           <img
             src={product.image}
             alt={product.title}
+            onError={(e) => {
+              e.currentTarget.src =
+                'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=900&q=80';
+            }}
             className="w-full h-full object-cover"
           />
           <div

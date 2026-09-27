@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { BHSSLogo } from './BHSSLogo';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { CurrencySwitcher } from './CurrencySwitcher';
+import { NewsletterSection } from './NewsletterSection';
+import { PWAInstallButton } from './PWAInstallButton';
 import { useStore } from '../context/StoreContext';
 import { LegalModal, LegalTabType } from './LegalModal';
 import {
@@ -43,45 +45,12 @@ export const Footer: React.FC = () => {
 
   return (
     <footer className="bg-slate-950 border-t border-slate-800 text-slate-400 text-xs pt-12 pb-24 md:pb-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-        {/* Top 3 Trust Columns */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-8 border-b border-slate-800/80">
-          <div className="flex items-start gap-3">
-            <div className="p-2.5 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 shrink-0">
-              <Zap className="w-5 h-5 text-cyan-400" />
-            </div>
-            <div>
-              <h4 className="text-white font-bold text-sm">{t('footer.instantDelivery')}</h4>
-              <p className="text-slate-400 text-xs mt-1">
-                {t('footer.instantDeliveryDesc')}
-              </p>
-            </div>
-          </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        {/* PWA App Installation Banner */}
+        <PWAInstallButton variant="banner" />
 
-          <div className="flex items-start gap-3">
-            <div className="p-2.5 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 shrink-0">
-              <ShieldCheck className="w-5 h-5 text-emerald-400" />
-            </div>
-            <div>
-              <h4 className="text-white font-bold text-sm">{t('footer.genuine')}</h4>
-              <p className="text-slate-400 text-xs mt-1">
-                {t('footer.genuineDesc')}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="p-2.5 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 shrink-0">
-              <Clock className="w-5 h-5 text-amber-400" />
-            </div>
-            <div>
-              <h4 className="text-white font-bold text-sm">{t('footer.support')}</h4>
-              <p className="text-slate-400 text-xs mt-1">
-                {t('footer.supportDesc')}
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* Promotional Marketing Newsletter Subscription */}
+        <NewsletterSection />
 
         {/* Main Footer Links */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -123,7 +92,10 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2 text-xs">
               <li>
                 <button
-                  onClick={() => setSelectedCategory('gaming')}
+                  onClick={() => {
+                    setSelectedCategory('gaming');
+                    document.getElementById('catalog-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
                   Steam & Console Game Keys
@@ -131,7 +103,10 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <button
-                  onClick={() => setSelectedCategory('software')}
+                  onClick={() => {
+                    setSelectedCategory('software');
+                    document.getElementById('catalog-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
                   Windows 11 & Office 2024
@@ -139,7 +114,10 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <button
-                  onClick={() => setSelectedCategory('ai-dev')}
+                  onClick={() => {
+                    setSelectedCategory('ai-dev');
+                    document.getElementById('catalog-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
                   ChatGPT Plus & Developer IDEs
@@ -147,7 +125,10 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <button
-                  onClick={() => setSelectedCategory('vpn')}
+                  onClick={() => {
+                    setSelectedCategory('vpn');
+                    document.getElementById('catalog-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
                   NordVPN & ExpressVPN
@@ -155,7 +136,10 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <button
-                  onClick={() => setSelectedCategory('streaming')}
+                  onClick={() => {
+                    setSelectedCategory('streaming');
+                    document.getElementById('catalog-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
                   Spotify & YouTube Premium
@@ -208,13 +192,10 @@ export const Footer: React.FC = () => {
               <div className="flex flex-wrap gap-1.5 text-[10px] font-mono">
                 <span className="px-2 py-1 rounded bg-slate-900 border border-emerald-500/40 text-emerald-300 font-bold flex items-center gap-1">
                   <Building className="w-3 h-3 text-emerald-400" />
-                  Virement Bancaire (Maroc)
+                  Virement Bancaire (CIH / Attijari / BCP)
                 </span>
                 <span className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300">
-                  USDT (TRC20)
-                </span>
-                <span className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300">
-                  BTC / ETH / SOL
+                  Cash Plus / Barid Bank
                 </span>
                 <span className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300">
                   Binance Pay

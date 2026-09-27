@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
 import { BHSSLogo } from './BHSSLogo';
+import { PWAInstallButton } from './PWAInstallButton';
 import {
   Search,
   ShoppingCart,
@@ -99,6 +100,9 @@ export const Header: React.FC = () => {
             </span>
             <span className="text-[11px] text-slate-400 font-mono">18ms</span>
           </button>
+
+          {/* PWA Install Button */}
+          <PWAInstallButton variant="header" />
 
           {/* Digital Vault Button */}
           <button

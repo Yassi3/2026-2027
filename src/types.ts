@@ -220,3 +220,9 @@ export interface StoreSettings {
   customAccentColor?: string;
   customTheme?: FullThemeCustomization;
 }
+
+export interface NewsletterSubscriber {
+  id: string;
+  email: string;
+  subscribedAt: string;
+}
