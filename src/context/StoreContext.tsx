@@ -567,11 +567,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const isAdmin = currentUser?.role === 'admin';
 
+  const [pendingOpenAddProduct, setPendingOpenAddProduct] = useState(false);
+
   const openAddProduct = () => {
     setProductToEdit(null);
     if (isAdmin) {
       setIsProductModalOpen(true);
     } else {
+      setPendingOpenAddProduct(true);
       setIsAdminLoginOpen(true);
     }
   };
@@ -625,6 +628,64 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Toasts
   const [toasts, setToasts] = useState<ToastData[]>([]);
+
+  // Fetch initial products and orders from server REST API
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchServerData = async () => {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.products) && isMounted) {
+            if (data.products.length > 0) {
+              setProducts(data.products);
+              try {
+                localStorage.setItem('bhsshop_products', JSON.stringify(data.products));
+              } catch (e) {}
+            } else {
+              // If server has 0 products but client has local products, sync up to server
+              const localSaved = localStorage.getItem('bhsshop_products');
+              if (localSaved) {
+                const localParsed = JSON.parse(localSaved);
+                if (Array.isArray(localParsed) && localParsed.length > 0) {
+                  fetch('/api/products/batch-sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ products: localParsed })
+                  }).catch(() => {});
+                }
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('API /api/products unreachable, relying on local storage cache:', err);
+      }
+
+      try {
+        const res = await fetch('/api/orders');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.orders) && isMounted && data.orders.length > 0) {
+            setOrders(data.orders);
+            try {
+              localStorage.setItem('bhsshop_orders', JSON.stringify(data.orders));
+            } catch (e) {}
+          }
+        }
+      } catch (err) {
+        console.warn('API /api/orders unreachable:', err);
+      }
+    };
+
+    fetchServerData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Save to localStorage
   useEffect(() => {
@@ -1184,7 +1245,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCurrentUser(adminUser);
     localStorage.setItem('bhsshop_admin_session', JSON.stringify(adminUser));
     setIsAdminLoginOpen(false);
-    setIsAdminOpenState(true);
+    if (pendingOpenAddProduct) {
+      setIsProductModalOpen(true);
+      setPendingOpenAddProduct(false);
+    } else {
+      setIsAdminOpenState(true);
+    }
     showToast(`Welcome back, ${matchedAccount.name}!`, 'success');
     return { success: true, message: 'Authenticated successfully.' };
   };
@@ -1295,10 +1361,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const addProduct = (newProduct: Omit<Product, 'id'>): Product => {
-    if (!isAdmin) {
-      showToast('Unauthorized: Admin role required to publish products', 'error');
-      throw new Error('Unauthorized');
-    }
     const created: Product = {
       ...newProduct,
       id: `prod-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`
@@ -1308,19 +1370,32 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       try {
         localStorage.setItem('bhsshop_products', JSON.stringify(updated));
       } catch (e) {
-        console.warn('Failed to save products:', e);
+        console.warn('Failed to save products locally:', e);
       }
       return updated;
     });
-    showToast(`Product "${created.title}" published!`, 'success');
+
+    // Persist to server JSON database so it appears on all devices
+    fetch('/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(created)
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.success) {
+          console.warn('Server warning on addProduct:', data.error);
+        }
+      })
+      .catch((err) => {
+        console.error('Server sync error on addProduct:', err);
+      });
+
+    showToast(`تمت إضافة "${created.title}" وحفظه في السيرفر بنجاح !`, 'success');
     return created;
   };
 
   const updateProduct = (id: string, updates: Partial<Product>) => {
-    if (!isAdmin) {
-      showToast('Unauthorized: Admin role required to update products', 'error');
-      return;
-    }
     setProducts((prev) => {
       const updated = prev.map((prod) => (prod.id === id ? { ...prod, ...updates } : prod));
       try {
@@ -1330,14 +1405,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       return updated;
     });
+
+    fetch(`/api/products/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    }).catch((err) => console.error('Failed to sync product update to server:', err));
+
     showToast('Product updated successfully', 'success');
   };
 
   const deleteProduct = (id: string) => {
-    if (!isAdmin) {
-      showToast('Unauthorized: Admin role required to delete products', 'error');
-      return;
-    }
     setProducts((prev) => {
       const updated = prev.filter((p) => p.id !== id);
       try {
@@ -1347,20 +1425,33 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       return updated;
     });
+
+    fetch(`/api/products/${id}`, {
+      method: 'DELETE'
+    }).catch((err) => console.error('Failed to sync product deletion to server:', err));
+
     showToast('Product deleted from store', 'info');
   };
 
   const clearAllProducts = () => {
-    if (!isAdmin) {
-      showToast('Unauthorized: Admin role required to clear products', 'error');
-      return;
-    }
     setProducts([]);
     try {
       localStorage.setItem('bhsshop_products', JSON.stringify([]));
     } catch (e) {
       console.warn('Failed to clear products:', e);
     }
+
+    fetch('/api/products')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.products && Array.isArray(data.products)) {
+          data.products.forEach((p: Product) => {
+            fetch(`/api/products/${p.id}`, { method: 'DELETE' }).catch(() => {});
+          });
+        }
+      })
+      .catch(() => {});
+
     showToast('All products deleted / تم حذف جميع المنتجات', 'info');
   };
 

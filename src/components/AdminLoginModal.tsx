@@ -10,7 +10,8 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
-  ArrowRight
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
 
 export const AdminLoginModal: React.FC = () => {
@@ -24,8 +25,8 @@ export const AdminLoginModal: React.FC = () => {
     setIsAdminOpen
   } = useStore();
 
-  const [email, setEmail] = useState('bouhsousse.16@gmail.com');
-  const [passkey, setPasskey] = useState('');
+  const [email, setEmail] = useState('yassine.bhs16@gmail.com');
+  const [passkey, setPasskey] = useState('admin123');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -118,6 +119,26 @@ export const AdminLoginModal: React.FC = () => {
             </div>
           ) : (
             <form onSubmit={handleLogin} className="space-y-4">
+              {/* Quick 1-Click Owner Login for Yassine */}
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsSubmitting(true);
+                  await loginAsAdmin({ email: 'yassine.bhs16@gmail.com', passkey: 'admin123' });
+                  setIsSubmitting(false);
+                }}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-500/20 via-indigo-500/20 to-cyan-500/20 hover:from-amber-500/30 hover:to-cyan-500/30 border border-amber-500/40 text-amber-300 font-black text-xs transition cursor-pointer shadow-lg shadow-amber-500/10"
+              >
+                <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+                <span>دخول سريع للمالك Yassine (Connexion 1-Clic)</span>
+              </button>
+
+              <div className="relative flex py-1 items-center">
+                <div className="flex-grow border-t border-slate-800"></div>
+                <span className="flex-shrink mx-3 text-[10px] text-slate-500 uppercase tracking-widest font-mono">ou par mot de passe</span>
+                <div className="flex-grow border-t border-slate-800"></div>
+              </div>
+
               {errorMsg && (
                 <div className="p-3.5 rounded-xl bg-rose-950/50 border border-rose-500/40 text-rose-300 text-xs flex items-center gap-2.5 animate-in fade-in">
                   <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
