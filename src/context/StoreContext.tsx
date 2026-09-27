@@ -132,6 +132,11 @@ interface StoreContextType {
   setIsDbStatusOpen: (open: boolean) => void;
   isSuccessOpen: boolean;
   setIsSuccessOpen: (open: boolean) => void;
+  isProductModalOpen: boolean;
+  setIsProductModalOpen: (open: boolean) => void;
+  productToEdit: Product | null;
+  setProductToEdit: (product: Product | null) => void;
+  openAddProduct: () => void;
 
   // Admin & Settings & Auth
   currentUser: AuthUser | null;
@@ -173,34 +178,33 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Load initial products from localStorage or defaults
+  // Load genuine user products from localStorage (filter out any dummy mock data)
   const [products, setProducts] = useState<Product[]>(() => {
     try {
-      // Clear legacy demo mock products as requested by the user
-      const wipedFlag = localStorage.getItem('bhsshop_products_wiped_v2');
-      if (!wipedFlag) {
-        localStorage.setItem('bhsshop_products_wiped_v2', 'true');
-        localStorage.setItem('bhsshop_products', JSON.stringify([]));
-        return [];
-      }
+      localStorage.removeItem('bhsshop_products_wiped_v2');
 
       const saved = localStorage.getItem('bhsshop_products');
       if (saved !== null) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          // Filter out any legacy hardcoded demo IDs
-          const legacyIds = new Set([
-            'prod-win11-pro', 'prod-office-2024', 'prod-cyberpunk-dlc',
-            'prod-elden-ring-shadow', 'prod-xbox-gamepass', 'prod-gta-v-premium',
-            'prod-adobe-cc-1y', 'prod-jetbrains-all', 'prod-chatgpt-plus',
-            'prod-github-copilot', 'prod-nordvpn-2y', 'prod-expressvpn-1y',
-            'prod-spotify-family', 'prod-youtube-premium', 'prod-steam-giftcard-50',
-            'prod-apple-giftcard-50', 'prod-canva-pro-1y', 'prod-psn-card-50',
-            'prod-discord-nitro-3m', 'prod-adobe-cc-all', 'prod-kaspersky-total',
-            'prod-gta-v-megalodon', 'prod-crunchyroll-1y', 'prod-ai-chatgpt-pro',
-            'prod-roblox-2000-robux', 'prod-elden-ring-erdtree'
+          // Filter out demo/mock product IDs so only user-created products are shown
+          const demoIds = new Set([
+            'prod-win11-pro', 'prod-office-2024', 'prod-canva-pro',
+            'prod-ea-fc25', 'prod-xbox-gamepass', 'prod-cod-bo6',
+            'prod-elden-ring', 'prod-gta-v', 'prod-spotify-1y',
+            'prod-youtube-1y', 'prod-discord-nitro', 'prod-crunchyroll',
+            'prod-nordvpn-2y', 'prod-kaspersky', 'prod-chatgpt-plus',
+            'prod-github-copilot', 'prod-steam-100dh', 'prod-psn-200dh',
+            'prod-roblox-2000', 'prod-adobe-cc-1y', 'prod-jetbrains-all',
+            'prod-expressvpn-1y', 'prod-spotify-family', 'prod-youtube-premium',
+            'prod-steam-giftcard-50', 'prod-apple-giftcard-50', 'prod-canva-pro-1y',
+            'prod-psn-card-50', 'prod-discord-nitro-3m', 'prod-adobe-cc-all',
+            'prod-kaspersky-total', 'prod-gta-v-megalodon', 'prod-crunchyroll-1y',
+            'prod-ai-chatgpt-pro', 'prod-roblox-2000-robux', 'prod-elden-ring-erdtree'
           ]);
-          return parsed.filter((p: Product) => !legacyIds.has(p.id));
+          const userOnly = parsed.filter((p: Product) => !demoIds.has(p.id));
+          localStorage.setItem('bhsshop_products', JSON.stringify(userOnly));
+          return userOnly;
         }
       }
       return [];
@@ -486,6 +490,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         createdAt: '2026-01-15'
       },
       {
+        id: 'admin-owner-02',
+        email: 'yassine.bhs16@gmail.com',
+        name: 'Yassine BHS (Store Owner)',
+        passkey: 'admin123',
+        role: 'admin',
+        isOwner: true,
+        createdAt: '2026-01-15'
+      },
+      {
         id: 'admin-staff-02',
         email: 'admin@bhsshop.com',
         name: 'BHSS Manager',
@@ -532,6 +545,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
   const [isDbStatusOpen, setIsDbStatusOpen] = useState(false);
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
   const [lastCompletedOrder, setLastCompletedOrder] = useState<Order | null>(null);
 
   // Authenticated user state - customers are unauthenticated / null by default
@@ -551,6 +566,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   const isAdmin = currentUser?.role === 'admin';
+
+  const openAddProduct = () => {
+    setProductToEdit(null);
+    if (isAdmin) {
+      setIsProductModalOpen(true);
+    } else {
+      setIsAdminLoginOpen(true);
+    }
+  };
 
   // Protected setter: non-admins cannot open the admin dashboard
   const setIsAdminOpen = (open: boolean) => {
@@ -1363,12 +1387,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const resetToDefaults = () => {
-    setProducts([]);
+    setProducts(INITIAL_PRODUCTS);
     setCategories(INITIAL_CATEGORIES);
     setSettings(INITIAL_SETTINGS);
     setPaymentGateways(INITIAL_PAYMENT_GATEWAYS);
     try {
-      localStorage.setItem('bhsshop_products', JSON.stringify([]));
+      localStorage.setItem('bhsshop_products', JSON.stringify(INITIAL_PRODUCTS));
     } catch (e) {
       console.warn('Failed to save products:', e);
     }
@@ -1517,6 +1541,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setIsDbStatusOpen,
         isSuccessOpen,
         setIsSuccessOpen,
+        isProductModalOpen,
+        setIsProductModalOpen,
+        productToEdit,
+        setProductToEdit,
+        openAddProduct,
 
         currentUser,
         isAdmin,

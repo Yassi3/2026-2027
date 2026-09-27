@@ -16,7 +16,8 @@ export const HeroBanner: React.FC = () => {
     setIsVaultOpen,
     settings,
     t,
-    currentLanguage
+    currentLanguage,
+    openAddProduct
   } = useStore();
 
   const handleExploreClick = () => {
@@ -90,7 +91,7 @@ export const HeroBanner: React.FC = () => {
 
           {isAdmin && (
             <button
-              onClick={() => setIsAdminOpen(true)}
+              onClick={openAddProduct}
               className="flex items-center gap-1.5 px-4 py-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold transition cursor-pointer"
             >
               <Plus className="w-4 h-4" />

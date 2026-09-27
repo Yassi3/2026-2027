@@ -15,6 +15,7 @@ import { DatabaseStatusModal } from './components/DatabaseStatusModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { AdminTopBar } from './components/AdminTopBar';
+import { ProductFormModal } from './components/admin/ProductFormModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { MobileNavBar } from './components/MobileNavBar';
 import { Footer } from './components/Footer';
@@ -44,6 +45,11 @@ const StoreContent: React.FC = () => {
     isAdmin,
     setIsAdminOpen,
     setIsAdminLoginOpen,
+    isProductModalOpen,
+    setIsProductModalOpen,
+    productToEdit,
+    setProductToEdit,
+    openAddProduct,
     dir,
     t,
     currentLanguage
@@ -110,18 +116,15 @@ const StoreContent: React.FC = () => {
               </p>
               {products.length === 0 ? (
                 <button
-                  onClick={() => {
-                    if (isAdmin) {
-                      setIsAdminOpen(true);
-                    } else {
-                      setIsAdminLoginOpen(true);
-                    }
-                  }}
-                  className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition cursor-pointer shadow-lg shadow-indigo-600/20"
+                  onClick={openAddProduct}
+                  className="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition cursor-pointer shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 mx-auto hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  {isAdmin
-                    ? (currentLanguage === 'ar' ? '+ إضافة منتج جديد (Add Product)' : '+ Ajouter un produit')
-                    : (currentLanguage === 'ar' ? 'دخول لوحة التحكم لإضافة المنتجات (Admin Login)' : 'Connexion Admin')}
+                  <Sparkles className="w-4 h-4 text-cyan-300" />
+                  <span>
+                    {currentLanguage === 'ar'
+                      ? '+ إضافة أول منتج إلى المتجر (Add Product)'
+                      : '+ Ajouter un produit'}
+                  </span>
                 </button>
               ) : (
                 <button
@@ -207,6 +210,14 @@ const StoreContent: React.FC = () => {
       <DatabaseStatusModal />
       <AdminLoginModal />
       {isAdmin && <AdminDashboard />}
+      <ProductFormModal
+        isOpen={isProductModalOpen}
+        onClose={() => {
+          setIsProductModalOpen(false);
+          setProductToEdit(null);
+        }}
+        productToEdit={productToEdit}
+      />
 
       {/* Offline Mode Indicator */}
       <OfflineIndicator />
