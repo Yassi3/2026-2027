@@ -88,16 +88,6 @@ export const HeroBanner: React.FC = () => {
             <KeyRound className="w-4 h-4 text-cyan-400" />
             <span>{t('hero.openVaultBtn')}</span>
           </button>
-
-          {isAdmin && (
-            <button
-              onClick={openAddProduct}
-              className="flex items-center gap-1.5 px-4 py-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold transition cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>{currentLanguage === 'ar' ? 'إضافة منتج' : 'Ajouter Produit'}</span>
-            </button>
-          )}
         </div>
 
         {/* Trust Badges Bar (Clean & Compact) */}

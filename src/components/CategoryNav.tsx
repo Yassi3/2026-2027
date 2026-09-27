@@ -1,5 +1,6 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
+import { matchesCategory } from '../utils/categoryMatcher';
 import {
   Sparkles,
   Gamepad2,
@@ -74,7 +75,7 @@ export const CategoryNav: React.FC = () => {
 
   const getCategoryCount = (catId: string) => {
     if (catId === 'all') return products.length;
-    return products.filter((p) => p.category === catId).length;
+    return products.filter((p) => matchesCategory(p, catId)).length;
   };
 
   const getCategoryIcon = (iconName: string) => {
@@ -105,16 +106,44 @@ export const CategoryNav: React.FC = () => {
     { id: 'Web/Cloud', label: 'Cloud / Web' }
   ];
 
+  // Only display categories that have products in them (or 'all' for all products)
+  const displayedCategories = React.useMemo(() => {
+    if (products.length === 0) return categories;
+    return categories.filter((category) => category.id === 'all' || getCategoryCount(category.id) > 0);
+  }, [categories, products]);
+
+  // Only display platforms that actually have products in the catalog
+  const availablePlatforms = React.useMemo(() => {
+    if (products.length === 0) return platforms;
+    return platforms.filter((plat) => {
+      if (plat.id === 'all') return true;
+      return products.some((p) => (p.platform || '').toLowerCase() === plat.id.toLowerCase());
+    });
+  }, [platforms, products]);
+
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    // If the currently selected platform has no products in this new category, reset to 'all'
+    if (selectedPlatform !== 'all') {
+      const hasProductsForPlatform = products.some(
+        (p) => matchesCategory(p, categoryId) && (p.platform || '').toLowerCase() === selectedPlatform.toLowerCase()
+      );
+      if (!hasProductsForPlatform) {
+        setSelectedPlatform('all');
+      }
+    }
+  };
+
   return (
     <div id="catalog-section" className="pt-6 pb-4 space-y-4">
       {/* Category Pills Bar */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none no-scrollbar">
-        {categories.map((category) => {
+        {displayedCategories.map((category) => {
           const isSelected = selectedCategory === category.id;
           return (
             <button
               key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
+              onClick={() => handleCategorySelect(category.id)}
               style={
                 isSelected
                   ? {
@@ -162,7 +191,7 @@ export const CategoryNav: React.FC = () => {
             <Layers className="w-3.5 h-3.5" />
             {t('catalog.platform')}
           </span>
-          {platforms.map((plat) => {
+          {availablePlatforms.map((plat) => {
             const isSelected = selectedPlatform === plat.id;
             return (
               <button

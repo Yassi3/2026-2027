@@ -28,6 +28,7 @@ import {
   TranslationKey
 } from '../data/translations';
 import { applyThemeToDocument } from '../data/themes';
+import { matchesCategory } from '../utils/categoryMatcher';
 
 interface ToastData {
   id: string;
@@ -47,6 +48,7 @@ interface StoreContextType {
   products: Product[];
   categories: Category[];
   filteredProducts: Product[];
+  isLoadingProducts: boolean;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   selectedCategory: string;
@@ -629,6 +631,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Toasts
   const [toasts, setToasts] = useState<ToastData[]>([]);
 
+  // Loading state for server products
+  const [isLoadingProducts, setIsLoadingProducts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('bhsshop_products');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return false;
+      }
+    } catch {}
+    return true;
+  });
+
   // Fetch initial products and orders from server REST API
   useEffect(() => {
     let isMounted = true;
@@ -662,6 +676,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
       } catch (err) {
         console.warn('API /api/products unreachable, relying on local storage cache:', err);
+      } finally {
+        if (isMounted) {
+          setIsLoadingProducts(false);
+        }
       }
 
       try {
@@ -914,7 +932,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Filtering & Sorting products
   const filteredProducts = products.filter((product) => {
     // Category filter
-    if (selectedCategory !== 'all' && product.category !== selectedCategory) {
+    if (selectedCategory !== 'all' && !matchesCategory(product, selectedCategory)) {
       return false;
     }
     // Platform filter
@@ -1562,6 +1580,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         products,
         categories,
         filteredProducts,
+        isLoadingProducts,
         searchQuery,
         setSearchQuery,
         selectedCategory,

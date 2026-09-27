@@ -103,9 +103,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={() => setSelectedProductDetails(product)}
-      className="group relative flex flex-col justify-between overflow-hidden cursor-pointer backdrop-blur-sm will-change-transform transition-all duration-300 hover:shadow-2xl"
+      className="group relative flex flex-col justify-between overflow-hidden cursor-pointer backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:border-indigo-500/40"
       style={{
-        transformStyle: 'preserve-3d',
         backgroundColor: 'var(--theme-card-bg, #111827)',
         borderColor: 'var(--theme-border, #1f293d)',
         borderWidth: '1px',
@@ -113,22 +112,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         borderRadius: 'var(--theme-radius, 16px)'
       }}
     >
-      {/* Dynamic Cursor Light Glare / Specular Highlight */}
+      {/* Dynamic Cursor Light Glare / Specular Highlight (Desktop only) */}
       <div
         ref={glareRef}
-        className="pointer-events-none absolute inset-0 z-30 opacity-0 transition-opacity duration-300"
+        className="pointer-events-none absolute inset-0 z-30 opacity-0 transition-opacity duration-300 hidden md:block"
       />
       {/* Top Image Section */}
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-950">
         <img
-          src={product.image}
+          src={product.image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=900&q=80'}
           alt={product.title}
           loading="lazy"
+          decoding="async"
           onError={(e) => {
             e.currentTarget.src =
               'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=900&q=80';
           }}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
 

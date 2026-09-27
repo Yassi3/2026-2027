@@ -38,7 +38,9 @@ const StoreContent: React.FC = () => {
   const {
     products,
     filteredProducts,
+    isLoadingProducts,
     searchQuery,
+    setSearchQuery,
     selectedCategory,
     setSelectedCategory,
     setSelectedPlatform,
@@ -96,45 +98,73 @@ const StoreContent: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <CategoryNav />
 
-          {/* Product Grid */}
-          {filteredProducts.length === 0 ? (
-            <div className="text-center py-20 px-4 space-y-4 rounded-3xl bg-slate-900/40 border border-slate-800">
-              <div className="w-16 h-16 mx-auto rounded-2xl bg-slate-800 flex items-center justify-center text-slate-500">
+          {/* Product Grid / Loading / Empty States */}
+          {isLoadingProducts && products.length === 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 space-y-4 animate-pulse"
+                >
+                  <div className="aspect-[16/10] w-full rounded-xl bg-slate-800/80" />
+                  <div className="space-y-2">
+                    <div className="h-4 bg-slate-800 rounded w-3/4" />
+                    <div className="h-3 bg-slate-800/60 rounded w-1/2" />
+                  </div>
+                  <div className="h-9 bg-slate-800/70 rounded-xl" />
+                </div>
+              ))}
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="text-center py-16 px-4 space-y-4 rounded-3xl bg-slate-900/40 border border-slate-800">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-500">
                 <SearchX className="w-8 h-8" />
               </div>
               <h3 className="text-lg font-bold text-white">
                 {products.length === 0
-                  ? (currentLanguage === 'ar' ? 'المتجر جاهز لإضافة منتجاتك' : 'Le magasin est prêt pour vos produits')
+                  ? (isAdmin
+                      ? (currentLanguage === 'ar' ? 'لوحة المالك: المتجر جاهز' : 'Espace Vendeur: Prêt')
+                      : (currentLanguage === 'ar' ? 'مرحباً بكم في متجر BHSS Shop' : 'Bienvenue sur BHSS Shop'))
                   : t('catalog.noProducts')}
               </h3>
               <p className="text-xs text-slate-400 max-w-sm mx-auto">
                 {products.length === 0
-                  ? (currentLanguage === 'ar'
-                      ? 'يمكنك إضافة منتجاتك الخاصة وتحديد أسعارها وصورها والبدء في البيع فوراً.'
-                      : 'Ajoutez vos produits avec images, prix et commencez vos ventes dès maintenant.')
+                  ? (isAdmin
+                      ? (currentLanguage === 'ar'
+                          ? 'يمكنك إدارة متجرك والمنتجات من لوحة تحكم المشرف.'
+                          : 'Gérez votre boutique et vos offres depuis le panneau d’administration.')
+                      : (currentLanguage === 'ar'
+                          ? 'سيتم توفير عروض رقمية واشتراكات حصرية قريباً جداً.'
+                          : 'De nouvelles offres et abonnements digitaux seront bientôt disponibles.'))
                   : t('catalog.noProductsDesc')}
               </p>
-              {products.length === 0 ? (
-                <button
-                  onClick={openAddProduct}
-                  className="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition cursor-pointer shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 mx-auto hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  <Sparkles className="w-4 h-4 text-cyan-300" />
-                  <span>
-                    {currentLanguage === 'ar'
-                      ? '+ إضافة أول منتج إلى المتجر (Add Product)'
-                      : '+ Ajouter un produit'}
-                  </span>
-                </button>
-              ) : (
+              
+              {/* Reset filter button (available whenever products exist in catalog) */}
+              {products.length > 0 && (
                 <button
                   onClick={() => {
                     setSelectedCategory('all');
                     setSelectedPlatform('all');
+                    setSearchQuery('');
                   }}
-                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition cursor-pointer shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 mx-auto hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  {t('catalog.resetFilters')}
+                  <Sparkles className="w-4 h-4 text-cyan-300" />
+                  <span>
+                    {currentLanguage === 'ar'
+                      ? `عرض جميع المنتجات (${products.length})`
+                      : `Afficher tous les produits (${products.length})`}
+                  </span>
+                </button>
+              )}
+
+              {/* If catalog is truly empty and user is admin, allow opening the Admin Dashboard */}
+              {products.length === 0 && isAdmin && (
+                <button
+                  onClick={() => setIsAdminOpen(true)}
+                  className="px-5 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2 mx-auto"
+                >
+                  <span>{currentLanguage === 'ar' ? 'فتح لوحة التحكم (Admin Dashboard)' : 'Ouvrir le panneau admin'}</span>
                 </button>
               )}
             </div>

@@ -409,19 +409,21 @@ export const UserAccountModal: React.FC = () => {
                 </div>
               ) : null}
 
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
-                <h4 className="font-bold text-white text-sm">Demo Data & Catalog State</h4>
-                <p className="text-slate-400 leading-relaxed">
-                  Reset product inventory, sample keys, and test data back to default demonstration state.
-                </p>
-                <button
-                  onClick={resetToDefaults}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-semibold transition cursor-pointer"
-                >
-                  <RefreshCw className="w-4 h-4 text-slate-400" />
-                  <span>Restore Initial Catalog</span>
-                </button>
-              </div>
+              {isAdmin && (
+                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                  <h4 className="font-bold text-white text-sm">Demo Data & Catalog State</h4>
+                  <p className="text-slate-400 leading-relaxed text-xs">
+                    Reset product inventory, sample keys, and test data back to default demonstration state.
+                  </p>
+                  <button
+                    onClick={resetToDefaults}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-semibold transition cursor-pointer text-xs"
+                  >
+                    <RefreshCw className="w-4 h-4 text-slate-400" />
+                    <span>Restore Initial Catalog</span>
+                  </button>
+                </div>
+              )}
 
               {!isAdmin && (
                 <div className="pt-2 text-right">
